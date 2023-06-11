@@ -1,5 +1,5 @@
-# leurocord
-Leocord is a discord-like app written in Rust
+# flyuke
+Flyuke is a discord-like app written in Rust
 
 ***
 
