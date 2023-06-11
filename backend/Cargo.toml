@@ -1,0 +1,19 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.16.1", features = ["full"] }
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "1.0.68"
+# warp is optimized for tokio
+warp = "0.3.1"
+sqlx = { version = "0.5.9", features = ["postgres", "macros"] }
+sqlx-core = { version = "0.5.9", features = ["runtime-tokio-rustls", "macros"] }
+sqlx-rt = { version = "0.5.9", features = ["rt-tokio", "rt-tokio-rustls"] }
+
+# rocket-api is a local crate, need to make backend aware of it
+rocket-api = { path = "rocket-api" }
