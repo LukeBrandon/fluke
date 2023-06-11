@@ -1,9 +1,7 @@
 [workspace]
 
 members = [
-    "backend/rocket-api",
-    "frontend/yew-ui",
-
-    #Internal
+    "backend",
+    "frontend",
     "common"
 ]
