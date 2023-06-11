@@ -1,5 +1,5 @@
-# flyuke
-Flyuke is a discord-like app written in Rust
+# Fluke
+Fluke is a discord-like app written in Rust
 
 ***
 
