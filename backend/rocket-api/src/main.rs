@@ -1,8 +1,6 @@
-#[macro_use]
 extern crate rocket;
-use common::User;
-use common::Pet;
 
+#[macro_use]
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
