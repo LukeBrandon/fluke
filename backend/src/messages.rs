@@ -1,0 +1,74 @@
+extern crate rocket;
+use crate::FlukeDb;
+use rocket::response::status::Created;
+use rocket::serde::{json::Json, Deserialize, Serialize};
+use rocket::{fairing::AdHoc, routes};
+
+use rocket_db_pools::{sqlx, Connection };
+
+use sqlx::FromRow;
+
+type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
+
+#[derive(Debug, Clone, Deserialize, Serialize, FromRow)]
+struct Message {
+    message: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, FromRow)]
+struct MessageWithId {
+    id: i64,
+    message: String,
+}
+
+#[get("/<id>")]
+async fn read_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Json<MessageWithId>> {
+    let message = sqlx::query_as!(MessageWithId, "SELECT * FROM message WHERE id = $1", id)
+        .fetch_one(&mut *db)
+        .await?;
+
+    Ok(Json(message))
+}
+
+#[get("/")]
+async fn list_messages(mut db: Connection<FlukeDb>) -> Result<Json<Vec<MessageWithId>>> {
+    let messages = sqlx::query_as!(MessageWithId, "SELECT id, message FROM message")
+        .fetch_all(&mut *db)
+        .await?;
+
+    Ok(Json(messages))
+}
+
+#[post("/", data = "<message>")]
+async fn create_message(
+    mut db: Connection<FlukeDb>,
+    message: Json<Message>,
+) -> Result<Created<Json<Message>>> {
+    sqlx::query_as!(
+        Message,
+        "INSERT INTO message (message) VALUES ($1)",
+        &message.message
+    )
+    .execute(&mut *db)
+    .await?;
+
+    Ok(Created::new("/").body(message))
+}
+
+#[delete("/<id>")]
+async fn delete_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<()>> {
+    let result = sqlx::query_as!(Message, "DELETE FROM message WHERE id = ($1)", id)
+        .execute(&mut *db)
+        .await?;
+
+    Ok((result.rows_affected() == 1).then(|| ()))
+}
+
+pub fn messages_stage() -> AdHoc {
+    AdHoc::on_ignite("Mesasges Stage", |rocket| async {
+        rocket.mount(
+            "/messages/",
+            routes![read_message, list_messages, create_message, delete_message],
+        )
+    })
+}
