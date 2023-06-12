@@ -4,7 +4,7 @@ use rocket::response::status::Created;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::{fairing::AdHoc, routes};
 
-use rocket_db_pools::{sqlx, Connection };
+use rocket_db_pools::{sqlx, Connection};
 
 use sqlx::FromRow;
 
@@ -45,7 +45,7 @@ async fn create_message(
     message: Json<CreateMessageSchema>,
 ) -> Result<Created<Json<CreateMessageSchema>>> {
     sqlx::query_as!(
-        Message,
+        MessageModel,
         "INSERT INTO message (message) VALUES ($1)",
         &message.message
     )
@@ -57,7 +57,7 @@ async fn create_message(
 
 #[delete("/<id>")]
 async fn delete_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<()>> {
-    let result = sqlx::query_as!(Message, "DELETE FROM message WHERE id = ($1)", id)
+    let result = sqlx::query_as!(MessageModel, "DELETE FROM message WHERE id = ($1)", id)
         .execute(&mut *db)
         .await?;
 
