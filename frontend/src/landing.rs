@@ -8,7 +8,7 @@ pub fn landing_page() -> Html {
            <div id="outer">
             <img id="logo" src="logo_transparent.png" alt="Logo" />
                     <p id="links">{ "To Database" }</p>
-                   
+
                     <p class="poem">
                         {"In the land where silence and speech intersect,"}<br/>
                         {"Lives a noble entity, Fluke, with a project."}<br/>
