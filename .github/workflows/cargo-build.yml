@@ -20,7 +20,7 @@ jobs:
         override: true
 
     - name: Build Backend
-      run: cd backend && cargo build --verbose
+      run: cd backend && cargo check --verbose
 
     - name: Build Frontend
-      run: cd frontend && cargo build --verbose
+      run: cd frontend && cargo check --verbose
