@@ -1,6 +1,3 @@
-// Place to flesh out shared data between front-end and back-end. Validation, utility functions, 
-// and data structures that are shared. 
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -34,7 +31,7 @@ impl UserResponse {
             name: user.name,
         }
     }
-} 
+}
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Pet {

@@ -4,7 +4,7 @@ use rocket::response::status::Created;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::{fairing::AdHoc, routes};
 
-use rocket_db_pools::{sqlx, Connection };
+use rocket_db_pools::{sqlx, Connection};
 
 use sqlx::FromRow;
 
