@@ -20,7 +20,7 @@ fn index() -> &'static str {
 /// This was gotten from the rocket.rs sqlx example [here](https://github.com/SergioBenitez/Rocket/blob/v0.5-rc/examples/databases/src/sqlx.rs#L87)
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     match FlukeDb::fetch(&rocket) {
-        Some(db) => match sqlx::migrate!(".//migrations").run(&**db).await {
+        Some(db) => match sqlx::migrate!("./migrations").run(&**db).await {
             Ok(_) => Ok(rocket),
             Err(e) => {
                 error!("Failed to initialize SQLx database: {}", e);
