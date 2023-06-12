@@ -10,20 +10,20 @@ use sqlx::FromRow;
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
-#[derive(Debug, Clone, Deserialize, Serialize, FromRow)]
-struct Message {
+#[derive(Debug, Clone, Deserialize, Serialize)]
+struct CreateMessageSchema {
     message: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow)]
-struct MessageWithId {
+struct MessageModel {
     id: i64,
     message: String,
 }
 
 #[get("/<id>")]
-async fn read_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Json<MessageWithId>> {
-    let message = sqlx::query_as!(MessageWithId, "SELECT * FROM message WHERE id = $1", id)
+async fn read_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Json<MessageModel>> {
+    let message = sqlx::query_as!(MessageModel, "SELECT * FROM message WHERE id = $1", id)
         .fetch_one(&mut *db)
         .await?;
 
@@ -31,8 +31,8 @@ async fn read_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Json<Messa
 }
 
 #[get("/")]
-async fn list_messages(mut db: Connection<FlukeDb>) -> Result<Json<Vec<MessageWithId>>> {
-    let messages = sqlx::query_as!(MessageWithId, "SELECT id, message FROM message")
+async fn list_messages(mut db: Connection<FlukeDb>) -> Result<Json<Vec<MessageModel>>> {
+    let messages = sqlx::query_as!(MessageModel, "SELECT id, message FROM message")
         .fetch_all(&mut *db)
         .await?;
 
@@ -42,8 +42,8 @@ async fn list_messages(mut db: Connection<FlukeDb>) -> Result<Json<Vec<MessageWi
 #[post("/", data = "<message>")]
 async fn create_message(
     mut db: Connection<FlukeDb>,
-    message: Json<Message>,
-) -> Result<Created<Json<Message>>> {
+    message: Json<CreateMessageSchema>,
+) -> Result<Created<Json<CreateMessageSchema>>> {
     sqlx::query_as!(
         Message,
         "INSERT INTO message (message) VALUES ($1)",
