@@ -1,0 +1,65 @@
+* {
+  box-sizing: border-box;
+  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+}
+
+.color_blue {
+  color: #5dacbd
+}
+#target {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+html {
+  scroll-behavior: smooth;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #2d3131;
+  color: #fcfcfc;
+  height: 100%;
+}
+
+p {
+  text-align: center;
+}
+
+#outer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.logo {
+  max-width: 50vw;
+}
+
+#links {
+  width: 100%;
+  text-align: center;
+}
+
+.poem {
+  color: #5dacbd; 
+  font-family: monospace;
+  font-size: 0.8rem;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+}
+
+#wrapper {
+  width: 70%;
+  margin: auto;
+}
+
+#title {
+  font-size: 2rem;
+  text-align: center;
+}
