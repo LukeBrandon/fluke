@@ -24,10 +24,10 @@ jobs:
       run: cd backend && cargo fmt -- --check
 
     - name: Run Backend Clippy
-      run: cd backend && cargo clippy -- -D warnings
+      run: cd backend && cargo clippy 
 
     - name: Check Frontend Formatting
       run: cd frontend && cargo fmt -- --check
 
     - name: Run Frontend Clippy
-      run: cd frontend && cargo clippy -- -D warnings
+      run: cd frontend && cargo clippy

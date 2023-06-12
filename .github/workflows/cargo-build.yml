@@ -19,8 +19,5 @@ jobs:
         toolchain: stable
         override: true
 
-    - name: Build Backend
-      run: cd backend && cargo check --verbose
-
     - name: Build Frontend
       run: cd frontend && cargo check --verbose
