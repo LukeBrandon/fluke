@@ -112,7 +112,7 @@ pub fn home() -> Html {
                 <InputField input_node_ref={password_ref} name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
                 <InputField input_node_ref={confirm_password_ref} name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
                 <p class="error-text">{ if *password_is_valid { "" } else { "Passwords do not match" } }</p>
-                <button type="submit" class="button button-primary">{"Submit"}</button>
+                <button type="submit" class="button button-primary form-button">{"Submit"}</button>
             </form>
         </main>
     }
