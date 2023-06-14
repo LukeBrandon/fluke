@@ -1,6 +1,22 @@
-* {
-  box-sizing: border-box;
-  font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+:root {
+    /* Typography */
+    --text-primary: rgba(255, 255, 255, 0.87);
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --text-disabled: rgba(255, 255, 255, 0.38);
+
+    /* Buttons */
+    --action-active: rgba(255, 255, 255, 0.54);
+    --action-hover: rgba(255, 255, 255, 0.04);
+    --action-selected: rgba(255, 255, 255, 0.08);
+    --action-disabled: rgba(255, 255, 255, 0.26);
+    --action-disabledBackground: rgba(255, 255, 255, 0.12);
+
+    /* Background */
+    --background-default: #121212;
+    --background-paper: #1E1E1E;
+
+    /* Divider */
+    --divider: rgba(255, 255, 255, 0.12);
 }
 
 .color_blue {
@@ -152,5 +168,5 @@ input[type="password"] {
 }
 
 .button-primary:hover {
-    background-color: #0D47A1;
+    background-color: rgba(0, 0, 0, 0.54);
 }
