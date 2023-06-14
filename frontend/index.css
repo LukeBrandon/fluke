@@ -45,12 +45,12 @@ p {
 }
 
 .poem {
+  padding: 2rem;
   color: #5dacbd; 
   font-family: monospace;
   font-size: 0.8rem;
   text-align: center;
   margin: 0;
-  padding: 0;
   white-space: pre-wrap;
 }
 
@@ -62,4 +62,38 @@ p {
 #title {
   font-size: 2rem;
   text-align: center;
+}
+
+
+.header {
+    background-color: #333;
+    overflow: hidden;
+}
+
+.nav-item {
+    display: inline-block;
+    padding: 10px;
+}
+
+.nav-link {
+    color: #f2f2f2;
+    text-align: center;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.nav-item:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.nav-item:active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
