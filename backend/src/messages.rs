@@ -65,7 +65,7 @@ async fn delete_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<(
 }
 
 pub fn messages_stage() -> AdHoc {
-    AdHoc::on_ignite("Mesasges Stage", |rocket| async {
+    AdHoc::on_ignite("Messages Stage", |rocket| async {
         rocket.mount(
             "/messages/",
             routes![read_message, list_messages, create_message, delete_message],
