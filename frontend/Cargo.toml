@@ -1,5 +1,5 @@
 [package]
-name = "flunk_website"
+name = "fluke_website"
 version = "0.1.0"
 edition = "2021"
 description = "Frontend for Flunk Website"
