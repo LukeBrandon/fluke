@@ -1,6 +1,6 @@
 mod app;
-mod landing;
-mod header;
+mod components;
+mod views;
 
 use app::App;
 
