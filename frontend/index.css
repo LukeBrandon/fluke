@@ -97,3 +97,60 @@ p {
   flex-direction: column;
   justify-content: space-around;
 }
+
+body {
+    background-color: #121212;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+    color: #F5F5F5;
+}
+
+.registration-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #232323;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+label {
+    padding: 10px;
+    color: #ffffff;
+}
+
+input[type="text"], 
+input[type="email"], 
+input[type="password"] {
+    padding: 10px;
+    background-color: #333333;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+}
+
+.error-text {
+    grid-column: span 2;
+    color: #FF0000;
+}
+
+.button-primary {
+    grid-column: span 2;
+    padding: 10px;
+    background-color: #1565C0;
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button-primary:hover {
+    background-color: #0D47A1;
+}
