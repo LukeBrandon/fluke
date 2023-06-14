@@ -25,6 +25,7 @@ Simply run the following command to install it:
 ```bash
 cargo install trunk wasm-bindgen-cli
 ```
+If you don't install trunk first, wasm-bindgen-cli wont build.
 
 ### Running
 
@@ -36,17 +37,7 @@ trunk build --release
 
 Unless overwritten, the output will be located in the `dist` directory.
 
-### Dependencies
-
-You may need to install some additional libraries for wasm dependencies. 
-
-- `sudo apt-get update`
-- `sudo apt-get install zlib1g-dev`
-- `sudo apt install musl-tools`
-- `sudo apt install clang`
-- `sudo apt install`
-
-Specifically on WSL2: 
+On WSL2 you may need to add some env variables to connect with ssl: 
 - `export OPENSSL_INCLUDE_DIR=/usr/include/openssl`
 - `export OPENSSL_LIB_DIR=/usr/lib`
 

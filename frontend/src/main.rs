@@ -1,5 +1,6 @@
 mod app;
 mod landing;
+mod header;
 
 use app::App;
 
