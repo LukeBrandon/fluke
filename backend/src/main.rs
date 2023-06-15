@@ -1,7 +1,8 @@
 #[macro_use]
 extern crate rocket;
 use dotenvy::dotenv;
-use rocket::{fairing, fairing::AdHoc, Build, Rocket, http};
+use rocket::{fairing, http, serde, Request, Response, Build, Rocket};
+// rocket_cors arent used yet, but they are an alternative and could make things easier, leaving for now
 use rocket_cors::{AllowedOrigins, CorsOptions};
 use rocket_db_pools::{sqlx, Database};
 
@@ -17,23 +18,23 @@ pub struct FlukeDb(sqlx::PgPool);
 // for information about what goes into the fairing and an example
 pub struct CORS;
 #[rocket::async_trait]
-impl Fairing for CORS {
-    fn info(&self) -> Info {
-        Info {
+impl fairing::Fairing for CORS {
+    fn info(&self) -> fairing::Info {
+        fairing::Info {
             name: "Add CORS headers to responses",
-            kind: Kind::Response
+            kind: fairing::Kind::Response
         }
     }
 
     async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
-        if response.status() != Status::NotFound {
+        if response.status() != http::Status::NotFound {
             return
         }
-        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(http::Header::new("Access-Control-Allow-Origin", "*"));
         // I dont think we need all of these, can cut some out later
-        response.set_header(Header::new("Access-Control-Allow-Methods", "POST, GET, PATCH, OPTIONS"));
-        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
-        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        response.set_header(http::Header::new("Access-Control-Allow-Methods", "POST, GET, PATCH, OPTIONS"));
+        response.set_header(http::Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(http::Header::new("Access-Control-Allow-Credentials", "true"));
     }
 }
 
@@ -45,12 +46,11 @@ fn index() -> &'static str {
 
 /// Setter
 #[post("/", data = "<data>")]
-async fn insert(data: Json<Vec<String>>) {
-    debug!("Received data");
+async fn insert(data: serde::json::Json<Vec<String>>) {
+    debug!("Received data: {:?}", data);
 }
 
-/// Catches all OPTION requests
-/// 
+/// Catches all OPTION requests to get the CORS
 #[options("/<_..>")]
 fn all_options() {
     // Intentionally empty
@@ -77,8 +77,9 @@ fn rocket() -> _ {
 
     rocket::build()
         .attach(FlukeDb::init())
-        .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
+        .attach(fairing::AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount("/", routes![index, all_options, insert])
+        .attach(CORS)
         .attach(messages::messages_stage())
         .attach(user::users_stage())
 }
