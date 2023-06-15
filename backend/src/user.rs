@@ -2,6 +2,7 @@ use crate::FlukeDb;
 use rocket::response::status::Created;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::{fairing::AdHoc, routes};
+use dotenvy::dotenv;
 use password_hash::{PasswordHash, PasswordVerifier};
 use argon2::Argon2;
 

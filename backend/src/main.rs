@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate rocket;
-
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use rocket::{fairing, fairing::AdHoc, Build, Rocket};
 use rocket_db_pools::{sqlx, Database};
 
@@ -44,5 +43,4 @@ fn rocket() -> _ {
         .mount("/", routes![index])
         .attach(messages::messages_stage())
         .attach(user::users_stage())
-
 }
