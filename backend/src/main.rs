@@ -6,6 +6,7 @@ use rocket::{fairing, fairing::AdHoc, Build, Rocket};
 use rocket_db_pools::{sqlx, Database};
 
 mod messages;
+mod user;
 
 #[derive(Database)]
 #[database("fluke")]
@@ -42,4 +43,6 @@ fn rocket() -> _ {
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount("/", routes![index])
         .attach(messages::messages_stage())
+        .attach(user::users_stage())
+
 }
