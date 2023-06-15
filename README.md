@@ -1,5 +1,9 @@
 # Fluke
-Fluke is a discord-like app written in Rust
+### Fluke is a discord-like app written in Rust
+
+.. and its backend, rocket, is way less finicky with nightly rust toolchain
+
+`rustup default nightly`
 
 ***
 
