@@ -1,9 +1,12 @@
+use crate::components::input::InputField;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::env;
-use web_sys::{HtmlInputElement, Request, RequestInit, RequestMode, ReadableStream};
+use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::{future_to_promise, JsFuture};
+use web_sys::{HtmlInputElement, ReadableStream, Request, RequestInit, RequestMode};
 use yew::prelude::*;
-use crate::components::input::InputField;
 
 #[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
 pub struct RegistrationForm {
@@ -85,49 +88,51 @@ pub fn home() -> Html {
                 }
             };
 
-            let inner_function = || -> Result<(), wasm_bindgen::JsValue> {
-                let request_res: Result<Request, wasm_bindgen::JsValue> =
-                    Request::new_with_str_and_init(&url, &options);
-                let request = match request_res {
-                    Ok(val) => val,
-                    Err(err) => {
-                        println!("Error creating request: {:?}", err.as_string());
-                        log::info!("Error creating request: {:?}", err.as_string());
-                        return Err(err);
-                    }
-                };
+            let registration_form_clone = registration_form.clone();
 
-                request.headers().set("Accept", "application/json")?;
-                request.headers().set("Content-Type", "application/json")?;
-
-                // May need some special error handling depending on how the form is submitted here ----
+            let inner_function = async move {
+                let mut options = web_sys::RequestInit::new();
+                options.method("POST");
+                options.mode(web_sys::RequestMode::Cors);
                 let body = serde_json::to_string(&registration_form).unwrap();
+                let body = JsValue::from_str(&body);
+                options.body(Some(&body));
+                let request = web_sys::Request::new_with_str_and_init(&url, &options).unwrap();
+                request.headers().set("Accept", "application/json").unwrap();
+                request
+                    .headers()
+                    .set("Content-Type", "application/json")
+                    .unwrap();
 
-                request.body().insert(body.into_bytes());
+                let window = web_sys::window().unwrap();
+                let request_promise = window.fetch_with_request(&request);
+                let resp_value = wasm_bindgen_futures::JsFuture::from(request_promise)
+                    .await
+                    .unwrap();
 
-                Request::new(&request)
-                    .and_then(|response| response.text())
-                    .then(|result| {
-                        match result {
-                            Ok(text) => {
-                                log::info!("Data sent to the server successfully");
-                                // Handle success response here
-                                Ok(())
-                            }
-                            Err(error) => {
-                                log::info!("Error sending data to the server: {:?}", error);
-                                // Handle error response here
-                                Err(error)
-                            }
-                        }
-                    })
+                let resp: web_sys::Response = resp_value.dyn_into().unwrap();
+                let json = wasm_bindgen_futures::JsFuture::from(resp.json().unwrap())
+                    .await
+                    .unwrap();
+               let parsed_json: serde_json::Value = serde_wasm_bindgen::from_value(json).unwrap();
+
+                match parsed_json.get("status") {
+                    Some(serde_json::Value::String(status)) if status == "success" => {
+                        log::info!("Registration was successful");
+                    }
+                    _ => {
+                        log::warn!("Registration failed");
+                    }
+                }
+                Ok::<(), wasm_bindgen::JsValue>(())
             };
 
-            // Call the inner function and handle any errors
-            if let Err(err) = inner_function() {
-                // Handle the error case here
-                // ...
-            }
+            wasm_bindgen_futures::spawn_local(async {
+                if let Err(err) = inner_function.await {
+                    // Handle the error case here
+                    log::warn!("Error occurred: {:?}", err);
+                }
+            });
         })
     };
     html! {
