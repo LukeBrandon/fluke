@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use std::env;
 use web_sys::{HtmlInputElement, Request, RequestInit, RequestMode, ReadableStream};
+use yew::prelude::*;
 use crate::components::input::InputField;
-use js_sys::Uint8Array;
 
 #[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
 pub struct RegistrationForm {
@@ -13,21 +13,6 @@ pub struct RegistrationForm {
     pub email: String,
     pub password: String,
     pub confirm_password: String,
-}
-
-// Needed to create body of POST request of type <ReadableStream>  
-fn convert_string_to_readable_stream(data: String) -> Result<ReadableStream, JsValue> {
-    // Convert the string to a byte array
-    let text_encoder = web_sys::TextEncoder::new()?;
-    let encoded_data = text_encoder.encode(&data)?;
-
-    // Create a Uint8Array from the byte array
-    let uint8_array = Uint8Array::new(&encoded_data);
-
-    // Create a ReadableStream from the Uint8Array
-    let readable_stream = ReadableStream::new_with_u8_array(&uint8_array)?;
-
-    Ok(readable_stream)
 }
 
 #[function_component(Home)]
