@@ -6,7 +6,6 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use web_sys::{HtmlInputElement, RequestInit, RequestMode};
 use yew::prelude::*;
-use dotenvy::dotenv;
 
 #[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
 pub struct RegistrationForm {
@@ -20,7 +19,6 @@ pub struct RegistrationForm {
 
 #[function_component(Home)]
 pub fn home() -> Html {
-    dotenv().ok();
     let registration_form = use_state(|| RegistrationForm::default());
 
     let username = use_node_ref();
@@ -82,29 +80,24 @@ pub fn home() -> Html {
             options.method("POST");
             options.mode(RequestMode::Cors);
             let db_env_url: &str = "ROCKET_DEV_URL";
-            let url: String = match env::var(db_env_url) {
-                Ok(val) => {
-                    println!("URL: {:?}", val);
-                    log::info!("URL Successful: {:?}", val);
-                    val
-                }
-                Err(e) => {
-                    println!("Couldn't interpret {}: {}", db_env_url, e);
-                    log::info!("URL error: {:?}", e);
-                    return;
-                }
-            };
 
             let get_js_future = async move {
                 log::info!("get_js_future called");
-
 
                 let mut options = web_sys::RequestInit::new();
                 options.method("POST");
                 options.mode(web_sys::RequestMode::Cors);
                 let body = serde_json::to_string(&registration_form).unwrap();
                 let body = JsValue::from_str(&body);
+
                 options.body(Some(&body));
+
+                #[cfg(target_arch = "wasm32")]
+                let url = "https://localhost:8000";
+
+                #[cfg(not(target_arch = "wasm32"))]
+                let url = env::var(db_env_url)
+                    .unwrap_or_else(|_| "https://localhost:8000".to_string());
 
                 log::info!("body set called");
                 let request = web_sys::Request::new_with_str_and_init(&url, &options).unwrap();
