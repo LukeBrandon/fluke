@@ -4,9 +4,9 @@ use serde_json;
 use std::env;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::{future_to_promise, JsFuture};
-use web_sys::{HtmlInputElement, ReadableStream, Request, RequestInit, RequestMode};
+use web_sys::{HtmlInputElement, RequestInit, RequestMode};
 use yew::prelude::*;
+use dotenvy::dotenv;
 
 #[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
 pub struct RegistrationForm {
@@ -20,6 +20,7 @@ pub struct RegistrationForm {
 
 #[function_component(Home)]
 pub fn home() -> Html {
+    dotenv().ok();
     let registration_form = use_state(|| RegistrationForm::default());
 
     let username = use_node_ref();
@@ -31,6 +32,9 @@ pub fn home() -> Html {
 
     let password_is_valid = use_state(|| true);
     let onsubmit = {
+        let registration_form = registration_form.clone();
+        // Get these from reg form once its working  -------------------------------------------------------------------------------------
+        let registration_form = registration_form.clone();
         let username = username.clone();
         let first_name_ref = first_name_ref.clone();
         let last_name_ref = last_name_ref.clone();
@@ -68,6 +72,7 @@ pub fn home() -> Html {
                 confirm_password: confirm_password_value,
             };
 
+            // This works
             log::info!("registration_form {:?}", &registration_form);
 
             // Send the registration form data to the backend server using gloo
@@ -80,23 +85,28 @@ pub fn home() -> Html {
             let url: String = match env::var(db_env_url) {
                 Ok(val) => {
                     println!("URL: {:?}", val);
+                    log::info!("URL Successful: {:?}", val);
                     val
                 }
                 Err(e) => {
                     println!("Couldn't interpret {}: {}", db_env_url, e);
+                    log::info!("URL error: {:?}", e);
                     return;
                 }
             };
 
-            let registration_form_clone = registration_form.clone();
+            let get_js_future = async move {
+                log::info!("get_js_future called");
 
-            let inner_function = async move {
+
                 let mut options = web_sys::RequestInit::new();
                 options.method("POST");
                 options.mode(web_sys::RequestMode::Cors);
                 let body = serde_json::to_string(&registration_form).unwrap();
                 let body = JsValue::from_str(&body);
                 options.body(Some(&body));
+
+                log::info!("body set called");
                 let request = web_sys::Request::new_with_str_and_init(&url, &options).unwrap();
                 request.headers().set("Accept", "application/json").unwrap();
                 request
@@ -114,7 +124,10 @@ pub fn home() -> Html {
                 let json = wasm_bindgen_futures::JsFuture::from(resp.json().unwrap())
                     .await
                     .unwrap();
-               let parsed_json: serde_json::Value = serde_wasm_bindgen::from_value(json).unwrap();
+                let json_string = js_sys::JSON::stringify(&json).unwrap();
+                let json_string = json_string.as_string().unwrap();
+                let parsed_json: serde_json::Map<String, serde_json::Value> =
+                    serde_json::from_str(&json_string).unwrap();
 
                 match parsed_json.get("status") {
                     Some(serde_json::Value::String(status)) if status == "success" => {
@@ -128,8 +141,7 @@ pub fn home() -> Html {
             };
 
             wasm_bindgen_futures::spawn_local(async {
-                if let Err(err) = inner_function.await {
-                    // Handle the error case here
+                if let Err(err) = get_js_future.await {
                     log::warn!("Error occurred: {:?}", err);
                 }
             });
@@ -139,14 +151,15 @@ pub fn home() -> Html {
         <main class="home">
             <h1>{"User Registration"}</h1>
             <form {onsubmit} class="registration-form">
-                <InputField input_node_ref={username} label={"Username".to_owned()} name={"username".clone()} field_type={"text".clone()} />
-                <InputField input_node_ref={first_name_ref} label={"First Name".to_owned()} name={"first_name".clone()} field_type={"text".clone()}  />
-                <InputField input_node_ref={last_name_ref} label={"Last Name".to_owned()} name={"last_name".clone()} field_type={"text".clone()}  />
-                <InputField input_node_ref={email_ref} label={"Email".to_owned()} name={"email".clone()} field_type={"email".clone()}  />
-                <InputField input_node_ref={password_ref} label={"Password".to_owned()} name={"password".clone()} field_type={"password".clone()}  />
-                <InputField input_node_ref={confirm_password_ref} label={"Confirm Password".to_owned()} name={"confirm_password".clone()} field_type={"password".clone()}  />
+                <InputField input_node_ref={username} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
+                <InputField input_node_ref={email_ref} name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
+                <InputField input_node_ref={first_name_ref} name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()}  />
+                <InputField input_node_ref={last_name_ref}  name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()}/>
+                // feat: validate that it is a valid email address
+                <InputField input_node_ref={password_ref} name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
+                <InputField input_node_ref={confirm_password_ref} name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
                 <p class="error-text">{ if *password_is_valid { "" } else { "Passwords do not match" } }</p>
-                <button type="submit" class="button button-primary">{"Submit"}</button>
+                <button type="submit" class="button button-primary form-button">{"Submit"}</button>
             </form>
         </main>
     }
