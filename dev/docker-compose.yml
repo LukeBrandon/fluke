@@ -1,0 +1,15 @@
+version: '0.1.0'
+
+services:
+  flunk_webside:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # Forwarddds the local Docker socket to the container.
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      # VS Code to mount directory for the folder of this project
+      - ..:/workspace:cached
+    command: tail -f /dev/null
+    network_mode: "host"
+    working_dir: /workspace/

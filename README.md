@@ -3,6 +3,10 @@ Fluke is a discord-like app written in Rust
 
 ***
 
+add to your .env file: 
+
+ROCKET_DEV_URL = "https://localhost:8000"
+
 ### Stack
 - [yew.rs](https://yew.rs/)
 - [rocket.rs](https://rocket.rs/)
