@@ -1,9 +1,11 @@
 # Fluke
 ### Fluke is a discord-like app written in Rust
 
-.. and its backend, rocket, is way less finicky with nightly rust toolchain
+Rocket backend requires rust nightly:
 
 `rustup default nightly`
+
+You will also need to update  `rustup target add wasm32-unknown-unknown`
 
 ***
 
