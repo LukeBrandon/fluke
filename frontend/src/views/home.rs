@@ -1,4 +1,5 @@
 use crate::components::input::InputField;
+use gloo_net::http::{Headers, Request};
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::env;
@@ -30,8 +31,6 @@ pub fn home() -> Html {
 
     let password_is_valid = use_state(|| true);
     let onsubmit = {
-        let registration_form = registration_form.clone();
-        // Get these from reg form once its working  -------------------------------------------------------------------------------------
         let registration_form = registration_form.clone();
         let username = username.clone();
         let first_name_ref = first_name_ref.clone();
@@ -73,78 +72,44 @@ pub fn home() -> Html {
             // This works
             log::info!("registration_form {:?}", &registration_form);
 
-            // Send the registration form data to the backend server using gloo
-            // Refrerence: https://github.com/rustwasm/wasm-bindgen/blob/main/examples/fetch/src/lib.rs
-            let mut options = RequestInit::new();
-
-            options.method("POST");
-            options.mode(RequestMode::Cors);
-
-            let get_js_future = async move {
-                log::info!("get_js_future called");
-
-                let mut options = web_sys::RequestInit::new();
-                options.method("POST");
-                options.mode(web_sys::RequestMode::Cors);
-
-                let form_data = web_sys::FormData::new().unwrap();
-                form_data.append_with_str("username", &registration_form.username)?;
-                form_data.append_with_str("first_name", &registration_form.first_name)?;
-                form_data.append_with_str("last_name", &registration_form.last_name)?;
-                form_data.append_with_str("email", &registration_form.email)?;
-                form_data.append_with_str("password", &registration_form.password)?;
-                form_data
-                    .append_with_str("confirm_password", &registration_form.confirm_password)?;
-                let body_string = serde_json::to_string(&registration_form).unwrap();
-                let body = JsValue::from_str(&body_string);
-
-                options.body(Some(&body));
-
-                let url: &str = "http://localhost:8000/signup";
-
-                log::info!("body set called");
-                let request = web_sys::Request::new_with_str_and_init(&url, &options).unwrap();
-                request.headers().set("Accept", "application/json").unwrap();
-                // Change the Content-Type to application/json.
-                request
-                    .headers()
-                    .set("Content-Type", "application/json")
-                    .unwrap();
-                log::info!("Request has been sent!");
-
-                let window = web_sys::window().unwrap();
-                let request_promise = window.fetch_with_request(&request);
-                let resp_value = wasm_bindgen_futures::JsFuture::from(request_promise)
+            let post_request = async move {
+                let response = Request::post("http://127.0.0.1:8000/signup")
+                    .headers({
+                        let headers = Headers::new();
+                        headers.set("Content-Type", "application/json");
+                        headers
+                    })
+                    .body(JsValue::from_str(
+                        &serde_json::to_string(&registration_form).unwrap(),
+                    ))
+                    .send()
                     .await
                     .unwrap();
-                log::info!("Value retrieved");
 
-                let resp: web_sys::Response = resp_value.dyn_into().unwrap();
-                let json = wasm_bindgen_futures::JsFuture::from(resp.json().unwrap())
-                    .await
-                    .unwrap();
-                log::info!("json tetrieved");
-                let json_string = js_sys::JSON::stringify(&json).unwrap();
-                let json_string = json_string.as_string().unwrap();
-                let parsed_json: serde_json::Map<String, serde_json::Value> =
-                    serde_json::from_str(&json_string).unwrap();
-                log::info!("json parsed");
-                match parsed_json.get("status") {
-                    Some(serde_json::Value::String(status)) if status == "success" => {
-                        log::info!("Registration was successful");
+                if response.ok() {
+                    let response_text = response.text().await.unwrap();
+                    log::info!("Response Text: {:?}", response_text);
+
+                    let response_json: serde_json::Value =
+                        serde_json::from_str(&response_text).unwrap();
+                    log::info!("Response JSON: {:?}", response_json);
+
+                    if let Some(status) = response_json.get("status") {
+                        match status {
+                            serde_json::Value::String(status) if status == "success" => {
+                                log::info!("Registration was successful");
+                            }
+                            _ => {
+                                log::warn!("Registration failed");
+                            }
+                        }
                     }
-                    _ => {
-                        log::warn!("Registration failed");
-                    }
+                } else {
+                    log::warn!("Request failed with status: {:?}", response.status());
                 }
-                Ok::<(), wasm_bindgen::JsValue>(())
             };
 
-            wasm_bindgen_futures::spawn_local(async {
-                if let Err(err) = get_js_future.await {
-                    log::warn!("Error occurred: {:?}", err);
-                }
-            });
+            wasm_bindgen_futures::spawn_local(post_request);
         })
     };
     html! {
