@@ -93,8 +93,10 @@ pub fn home() -> Html {
                 form_data.append_with_str("last_name", &registration_form.last_name)?;
                 form_data.append_with_str("email", &registration_form.email)?;
                 form_data.append_with_str("password", &registration_form.password)?;
-                form_data.append_with_str("confirm_password", &registration_form.confirm_password)?;
-                let body = wasm_bindgen::JsValue::from(form_data);
+                form_data
+                    .append_with_str("confirm_password", &registration_form.confirm_password)?;
+                let body_string = serde_json::to_string(&registration_form).unwrap();
+                let body = JsValue::from_str(&body_string);
 
                 options.body(Some(&body));
 
@@ -103,9 +105,10 @@ pub fn home() -> Html {
                 log::info!("body set called");
                 let request = web_sys::Request::new_with_str_and_init(&url, &options).unwrap();
                 request.headers().set("Accept", "application/json").unwrap();
+                // Change the Content-Type to application/json.
                 request
                     .headers()
-                    .set("Content-Type", "application/x-www-form-urlencoded")
+                    .set("Content-Type", "application/json")
                     .unwrap();
                 log::info!("Request has been sent!");
 
