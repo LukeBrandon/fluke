@@ -3,11 +3,7 @@ use rocket::response::status::Created;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::{fairing::AdHoc, routes};
 use dotenvy::dotenv;
-use password_hash::{PasswordHash, PasswordVerifier};
-use argon2::Argon2;
-
 use rocket_db_pools::{sqlx, Connection};
-
 use sqlx::FromRow;
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
@@ -26,8 +22,8 @@ struct CreateUserSchema {
 // A row in the 'users' db table
 // Likely want to add 'Optional' fields for last name
 // If Optional fields added, change .fetch_* to .fetch_optional(...)
-#[derive(Debug, Clone, Deserialize, Serialize, FromRow)]
-struct UserModel {
+#[derive(Debug, Clone, Deserialize, Serialize, FromRow, FromForm)]
+pub struct UserModel {
     id: i64,
     username: String,
     first_name: String,
