@@ -1,12 +1,11 @@
 #[macro_use]
 extern crate rocket;
 use dotenvy::dotenv;
-use rocket::{fairing, http, serde, Build, Request, Response, Rocket};
+use rocket::{fairing, http, Build, Request, Response, Rocket};
 // rocket_cors arent used yet, but they are an alternative and could make things easier, leaving for now
 use rocket::form::Form;
-use rocket::fs::{relative, FileServer, NamedFile};
+use rocket::fs::{relative, FileServer};
 use rocket_db_pools::{sqlx, Database};
-use std::path::{Path};
 
 mod messages;
 mod user;
@@ -15,9 +14,7 @@ mod user;
 #[database("fluke")]
 pub struct FlukeDb(sqlx::PgPool);
 
-/// We need to create a fairing to to handle CORS restrictions
 /// See https://docs.rs/rocket/latest/rocket/fairing/trait.Fairing.html
-/// for information about what goes into the fairing and an example
 pub struct CORS;
 #[rocket::async_trait]
 impl fairing::Fairing for CORS {
@@ -45,17 +42,10 @@ impl fairing::Fairing for CORS {
     }
 }
 
-/// This feels like the wrong way to handle this
-#[get("/")]
-async fn index() -> Option<NamedFile> {
-    let path = Path::new("../frontend/dist/index.html");
-    NamedFile::open(path).await.ok()
-}
-
 /// Setter
 #[post("/signup", data = "<data>")]
 async fn signup(data: Form<user::UserModel>) {
-    debug!("Received data: {:?}", data);
+    debug!("Received data from frontend: {:?}", data);
 }
 
 /// Catches all OPTION requests to get the CORS
@@ -90,8 +80,8 @@ fn rocket() -> _ {
             run_migrations,
         ))
         .attach(CORS)
-        .mount("/", routes![index, all_options, signup])
-        .mount("/", FileServer::from(relative!("../frontend/dist")))
+        .mount("/", routes![all_options, signup])
+        .mount("/", FileServer::from(relative!("static")))
         .attach(messages::messages_stage())
         .attach(user::users_stage())
 }
