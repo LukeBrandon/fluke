@@ -69,7 +69,6 @@ pub fn home() -> Html {
                 confirm_password: confirm_password_value,
             };
 
-            // This works
             log::info!("registration_form {:?}", &registration_form);
 
             let post_request = async move {
@@ -80,12 +79,13 @@ pub fn home() -> Html {
                         headers
                     })
                     .body(JsValue::from_str(
-                        &serde_json::to_string(&registration_form).unwrap(),
+                        &serde_json::to_string(&registration_form)
+                            .expect("Failed to serialize data"),
                     ))
                     .send()
                     .await
                     .unwrap();
-
+                log::info!("Response: {:?}", response);
                 if response.ok() {
                     let response_text = response.text().await.unwrap();
                     log::info!("Response Text: {:?}", response_text);
@@ -115,12 +115,11 @@ pub fn home() -> Html {
     html! {
         <main class="home">
             <h1>{"User Registration"}</h1>
-            <form {onsubmit} class="registration-form">
+            <form {onsubmit} method="post" class="registration-form">
                 <InputField input_node_ref={username} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
                 <InputField input_node_ref={email_ref} name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
                 <InputField input_node_ref={first_name_ref} name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()}  />
                 <InputField input_node_ref={last_name_ref}  name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()}/>
-                // feat: validate that it is a valid email address
                 <InputField input_node_ref={password_ref} name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
                 <InputField input_node_ref={confirm_password_ref} name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
                 <p class="error-text">{ if *password_is_valid { "" } else { "Passwords do not match" } }</p>
