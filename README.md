@@ -1,15 +1,7 @@
 # Fluke
 ### Fluke is a discord-like app written in Rust
 
-Rocket backend requires rust nightly:
-
-You will also need to update  `rustup target add wasm32-unknown-unknown`
-
-***
-
-add to your .env file: 
-
-ROCKET_DEV_URL = "https://localhost:8000"
+Make sure you set: `rustup target add wasm32-unknown-unknown`
 
 ### Stack
 - [yew.rs](https://yew.rs/)
