@@ -18,7 +18,6 @@ type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T
 #[database("fluke")]
 pub struct FlukeDb(sqlx::PgPool);
 
-/// See https://docs.rs/rocket/latest/rocket/fairing/trait.Fairing.html
 pub struct CORS;
 #[rocket::async_trait]
 impl fairing::Fairing for CORS {
@@ -99,7 +98,6 @@ fn rocket() -> _ {
         ))
         .attach(CORS)
         .mount("/", routes![all_options, signup])
-        .mount("/", FileServer::from(relative!("static")))
         .attach(messages::messages_stage())
         .attach(users::users_stage())
 }
