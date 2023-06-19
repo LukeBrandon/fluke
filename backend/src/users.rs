@@ -1,7 +1,11 @@
 use std::fmt;
 
 use crate::FlukeDb;
-use rocket::serde::{json::Json, Deserialize, Serialize};
+use rocket::http::Status;
+use rocket::response::status::Created;
+use rocket::serde::json::Json;
+use rocket::serde::{Deserialize, Serialize};
+use rocket::{fairing, http, Request, Response};
 use rocket::{fairing::AdHoc, routes};
 use rocket_db_pools::{sqlx, Connection};
 use sqlx::FromRow;
@@ -73,6 +77,53 @@ impl std::fmt::Display for SignupError {
                 write!(f, "Database query contained an unspecified error.")
             }
             SignupError::UnknownDatabaseError => write!(f, "Database error, not query related."),
+        }
+    }
+}
+
+pub struct CORS;
+#[rocket::async_trait]
+impl fairing::Fairing for CORS {
+    fn info(&self) -> fairing::Info {
+        fairing::Info {
+            name: "Add CORS headers to responses",
+            kind: fairing::Kind::Response,
+        }
+    }
+
+    async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
+        response.set_header(http::Header::new(
+            "Access-Control-Allow-Origin",
+            request.headers().get_one("Origin").unwrap_or("*"),
+        ));
+        response.set_header(http::Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, GET, PATCH, OPTIONS",
+        ));
+        response.set_header(http::Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(http::Header::new(
+            "Access-Control-Allow-Credentials",
+            "true",
+        ));
+    }
+}
+
+#[post("/signup", data = "<user>")]
+async fn signup(
+    db: Connection<FlukeDb>,
+    user: Json<CreateUserSchema>,
+) -> Result<Created<Json<UserModel>>, rocket::response::status::Custom<String>> {
+    match create_user(db, user.into_inner()).await {
+        Ok(user_model) => {
+            let location = format!("/users/{}", user_model.id);
+            Ok(Created::new(location).body(Json(user_model)))
+        }
+        Err(e) => {
+            let status = match e {
+                SignupError::NonUniqueIndexError => Status::Conflict,
+                _ => Status::InternalServerError,
+            };
+            Err(rocket::response::status::Custom(status, e.to_string()))
         }
     }
 }
