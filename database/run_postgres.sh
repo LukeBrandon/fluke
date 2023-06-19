@@ -1,4 +1,6 @@
 # run-postgres.sh
+# Make sure docker daemon has necessary permissions
+
 set -e
 HOST_PORT=5432
 NAME=postgres-dev

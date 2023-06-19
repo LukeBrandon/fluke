@@ -3,8 +3,6 @@
 
 Rocket backend requires rust nightly:
 
-`rustup default nightly`
-
 You will also need to update  `rustup target add wasm32-unknown-unknown`
 
 ***
