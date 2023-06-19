@@ -93,15 +93,6 @@ pub async fn read_user_username(
     Ok(user.map(Json))
 }
 
-// #[get("/users/<id>")]
-// pub async fn read_user_id(mut db: Connection<FlukeDb>, id: i64) -> Result<Json<UserModel>> {
-//     let user = sqlx::query_as!(UserModel, "SELECT * FROM users WHERE id = $1", id)
-//         .fetch_one(&mut *db)
-//         .await?;
-
-//     Ok(Json(user))
-// }
-
 #[get("/users")]
 pub async fn list_users(mut db: Connection<FlukeDb>) -> Result<Json<Vec<UserModel>>> {
     let users = sqlx::query_as!(
