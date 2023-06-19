@@ -1,11 +1,7 @@
 use crate::components::input::InputField;
-use gloo_net::http::{Headers, Request};
+use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
-use serde_json;
-use std::env;
-use wasm_bindgen::JsCast;
-use wasm_bindgen::JsValue;
-use web_sys::{HtmlInputElement, RequestInit, RequestMode};
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 #[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
@@ -20,8 +16,6 @@ pub struct RegistrationForm {
 
 #[function_component(Home)]
 pub fn home() -> Html {
-    let registration_form = use_state(|| RegistrationForm::default());
-
     let username = use_node_ref();
     let first_name_ref = use_node_ref();
     let last_name_ref = use_node_ref();
@@ -31,7 +25,6 @@ pub fn home() -> Html {
 
     let password_is_valid = use_state(|| true);
     let onsubmit = {
-        let registration_form = registration_form.clone();
         let username = username.clone();
         let first_name_ref = first_name_ref.clone();
         let last_name_ref = last_name_ref.clone();
@@ -72,43 +65,33 @@ pub fn home() -> Html {
             log::info!("registration_form {:?}", &registration_form);
 
             let post_request = async move {
-                let response = Request::post("http://127.0.0.1:8000/signup")
-                    .headers({
-                        let headers = Headers::new();
-                        headers.set("Content-Type", "application/json");
-                        headers
-                    })
-                    .body(JsValue::from_str(
-                        &serde_json::to_string(&registration_form)
-                            .expect("Failed to serialize data"),
-                    ))
+                let response_result = Request::post("http://127.0.0.1:8000/signup")
+                    // ...
                     .send()
-                    .await
-                    .unwrap();
-                log::info!("Response: {:?}", response);
-                if response.ok() {
-                    let response_text = response.text().await.unwrap();
-                    log::info!("Response Text: {:?}", response_text);
+                    .await;
 
-                    let response_json: serde_json::Value =
-                        serde_json::from_str(&response_text).unwrap();
-                    log::info!("Response JSON: {:?}", response_json);
+                match response_result {
+                    Ok(response) => {
+                        log::info!("Response: {:?}", response);
 
-                    if let Some(status) = response_json.get("status") {
-                        match status {
-                            serde_json::Value::String(status) if status == "success" => {
-                                log::info!("Registration was successful");
-                            }
-                            _ => {
-                                log::warn!("Registration failed");
-                            }
+                        if response.ok() {
+                            let response_text = response.text().await.unwrap();
+                            log::info!("Response Text: {:?}", response_text);
+                            // ...handle the successful response as before...
+                        } else if response.status() == 409 {
+                            log::warn!("Signup failed due to a duplicate username or email");
+                            // ...handle the unknown server error...
+                        } else {
+                            log::warn!("Request failed with status: {:?}", response.status());
+                            // ...handle other non-OK responses...
                         }
                     }
-                } else {
-                    log::warn!("Request failed with status: {:?}", response.status());
+                    Err(error) => {
+                        log::warn!("Failed to make request: {:?}", error);
+                        // ...handle the error...
+                    }
                 }
             };
-
             wasm_bindgen_futures::spawn_local(post_request);
         })
     };
