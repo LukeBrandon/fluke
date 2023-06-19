@@ -77,18 +77,18 @@ pub fn home() -> Html {
                         if response.ok() {
                             let response_text = response.text().await.unwrap();
                             log::info!("Response Text: {:?}", response_text);
-                            // ...handle the successful response as before...
+                            // one of us, one of us --> /login
                         } else if response.status() == 409 {
                             log::warn!("Signup failed due to a duplicate username or email");
-                            // ...handle the unknown server error...
+                            // one of us, one of us --> /home
                         } else {
                             log::warn!("Request failed with status: {:?}", response.status());
-                            // ...handle other non-OK responses...
+                            // something that shouldn't happen, todo: 404? 
                         }
                     }
                     Err(error) => {
                         log::warn!("Failed to make request: {:?}", error);
-                        // ...handle the error...
+                        // something that really shoudlnt happen, todo: 500?
                     }
                 }
             };
@@ -111,3 +111,4 @@ pub fn home() -> Html {
         </main>
     }
 }
+
