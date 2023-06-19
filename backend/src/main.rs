@@ -1,14 +1,18 @@
 #[macro_use]
 extern crate rocket;
 use dotenvy::dotenv;
-use rocket::{fairing, http, Build, Request, Response, Rocket};
-// rocket_cors arent used yet, but they are an alternative and could make things easier, leaving for now
-use rocket::form::Form;
 use rocket::fs::{relative, FileServer};
-use rocket_db_pools::{sqlx, Database};
+use rocket::http::Status;
+use rocket::response::status::Created;
+use rocket::serde::json::Json;
+use rocket::{fairing, http, Build, Request, Response, Rocket};
+use rocket_db_pools::{sqlx, Connection, Database};
+
+use crate::users::{CreateUserSchema, SignupError, UserModel};
 
 mod messages;
-mod user;
+mod users;
+type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
 #[derive(Database)]
 #[database("fluke")]
@@ -42,10 +46,24 @@ impl fairing::Fairing for CORS {
     }
 }
 
-/// Setter
-#[post("/signup", data = "<data>")]
-async fn signup(data: Form<user::UserModel>) {
-    debug!("Received data from frontend: {:?}", data);
+#[post("/signup", data = "<user>")]
+async fn signup(
+    db: Connection<FlukeDb>,
+    user: Json<CreateUserSchema>,
+) -> Result<Created<Json<UserModel>>, rocket::response::status::Custom<String>> {
+    match users::create_user(db, user.into_inner()).await {
+        Ok(user_model) => {
+            let location = format!("/users/{}", user_model.id);
+            Ok(Created::new(location).body(Json(user_model)))
+        }
+        Err(e) => {
+            let status = match e {
+                SignupError::NonUniqueIndexError => Status::Conflict,
+                _ => Status::InternalServerError,
+            };
+            Err(rocket::response::status::Custom(status, e.to_string()))
+        }
+    }
 }
 
 /// Catches all OPTION requests to get the CORS
@@ -83,5 +101,5 @@ fn rocket() -> _ {
         .mount("/", routes![all_options, signup])
         .mount("/", FileServer::from(relative!("static")))
         .attach(messages::messages_stage())
-        .attach(user::users_stage())
+        .attach(users::users_stage())
 }
