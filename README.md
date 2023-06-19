@@ -3,6 +3,11 @@
 
 Make sure you set: `rustup target add wasm32-unknown-unknown`
 
+Files are served from backup/static, to build files run 
+`cd frontend`
+`trunk build --release` 
+or run `dev/serve.sh`
+
 ### Stack
 - [yew.rs](https://yew.rs/)
 - [rocket.rs](https://rocket.rs/)
