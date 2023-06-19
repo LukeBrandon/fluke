@@ -1,2 +1,2 @@
--- create_users_table.down
+-- Add down migration script here
 DROP TABLE IF EXISTS message;
