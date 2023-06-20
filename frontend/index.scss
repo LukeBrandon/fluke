@@ -22,7 +22,7 @@ html {
   body {
     color: var(--text-primary);
     background-color: var(--background-default);
-    height: 100%;
+    min-height: 100vh;
   }
 }
 
@@ -180,4 +180,12 @@ input[type="password"] {
 .error-text {
   grid-column: span 2;
   color: #ff0000;
+}
+
+// ----- MEDIA QUERIES ---------
+//  Adds a top margin of 64 pixels to prevent overlap
+@media (min-width: 640px) {
+  .md\:mt-16 {
+    margin-top: 4rem;
+  }
 }
