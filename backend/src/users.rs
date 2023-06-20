@@ -169,10 +169,20 @@ pub async fn delete_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<
     Ok((result.rows_affected() == 1).then(|| ()))
 }
 
+#[get("/<id>")]
+pub async fn get_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<Json<UserModel>>> {
+    let user: Option<UserModel> =
+        sqlx::query_as!(UserModel, "SELECT * FROM user_profile WHERE id = $1", id)
+            .fetch_optional(&mut *db)
+            .await?;
+
+    Ok(user.map(Json))
+}
+
 pub fn users_stage() -> AdHoc {
     AdHoc::on_ignite("Users Stage", |rocket| async {
         rocket
-            .mount("/users/", routes![list_users, delete_user])
+            .mount("/users/", routes![list_users, delete_user, get_user])
             .mount("/", routes![signup_user])
             .attach(CORS)
     })
