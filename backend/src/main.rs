@@ -51,8 +51,8 @@ fn rocket() -> _ {
             "SQLx Migrations",
             run_migrations,
         ))
+        .register("/", catchers![not_found])
         .mount("/", routes![all_options])
         .attach(messages::messages_stage())
         .attach(users::users_stage())
-        .register("/", catchers![not_found])
 }
