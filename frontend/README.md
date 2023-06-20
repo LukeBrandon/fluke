@@ -3,12 +3,14 @@
 - Fluke's frontend is written using [Yew - Rust / Wasm client web app framework](https://github.com/yewstack/yew)
 
 - [Trunk for bundling](https://github.com/thedodd/trunk)
- 
+
 - [wasm-bindgen book/guide](https://rustwasm.github.io/wasm-bindgen/) covers most topics
+
+-[Tailwind CSS for Styling](https://tailwindcss.com/)
 
 ---
 
-### Installation
+## Installation
 
 This assumes a typical rust installation which contains both `rustup` and Cargo.
 
@@ -25,7 +27,6 @@ Simply run the following command to install it:
 ```bash
 cargo install trunk wasm-bindgen-cli
 ```
-If you don't install trunk first, wasm-bindgen-cli wont build.
 
 ### Running
 
@@ -37,7 +38,7 @@ trunk build --release
 
 Unless overwritten, the output will be located in the `dist` directory.
 
-On WSL2 you may need to add some env variables to connect with ssl: 
+On WSL2 you may need to add some env variables to connect with ssl:
+
 - `export OPENSSL_INCLUDE_DIR=/usr/include/openssl`
 - `export OPENSSL_LIB_DIR=/usr/lib`
-
