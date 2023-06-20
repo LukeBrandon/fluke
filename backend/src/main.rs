@@ -2,13 +2,38 @@
 extern crate rocket;
 use dotenvy::dotenv;
 use rocket::fs::NamedFile;
-use rocket::Request;
-use rocket::{fairing, Build, Rocket};
+use rocket::{fairing, http, Build, Request, Response, Rocket};
 use rocket_db_pools::{sqlx, Database};
 use std::path::Path;
-
 mod messages;
 mod users;
+
+pub struct CORS;
+#[rocket::async_trait]
+impl fairing::Fairing for CORS {
+    fn info(&self) -> fairing::Info {
+        fairing::Info {
+            name: "Add CORS headers to responses",
+            kind: fairing::Kind::Response,
+        }
+    }
+
+    async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
+        response.set_header(http::Header::new(
+            "Access-Control-Allow-Origin",
+            request.headers().get_one("Origin").unwrap_or("*"),
+        ));
+        response.set_header(http::Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, GET, PATCH, OPTIONS",
+        ));
+        response.set_header(http::Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(http::Header::new(
+            "Access-Control-Allow-Credentials",
+            "true",
+        ));
+    }
+}
 
 #[derive(Database)]
 #[database("fluke")]
@@ -55,4 +80,5 @@ fn rocket() -> _ {
         .mount("/", routes![all_options])
         .attach(messages::messages_stage())
         .attach(users::users_stage())
+        .attach(CORS)
 }

@@ -5,7 +5,6 @@ use rocket::http::Status;
 use rocket::response::status::Created;
 use rocket::serde::json::Json;
 use rocket::serde::{Deserialize, Serialize};
-use rocket::{fairing, http, Request, Response};
 use rocket::{fairing::AdHoc, routes};
 use rocket_db_pools::{sqlx, Connection};
 use sqlx::FromRow;
@@ -76,33 +75,6 @@ impl std::fmt::Display for SignupError {
             }
             SignupError::UnknownDatabaseError => write!(f, "Database error, not query related."),
         }
-    }
-}
-
-pub struct CORS;
-#[rocket::async_trait]
-impl fairing::Fairing for CORS {
-    fn info(&self) -> fairing::Info {
-        fairing::Info {
-            name: "Add CORS headers to responses",
-            kind: fairing::Kind::Response,
-        }
-    }
-
-    async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Origin",
-            request.headers().get_one("Origin").unwrap_or("*"),
-        ));
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Methods",
-            "POST, GET, PATCH, OPTIONS",
-        ));
-        response.set_header(http::Header::new("Access-Control-Allow-Headers", "*"));
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Credentials",
-            "true",
-        ));
     }
 }
 
@@ -184,6 +156,5 @@ pub fn users_stage() -> AdHoc {
         rocket
             .mount("/users/", routes![list_users, delete_user, get_user])
             .mount("/", routes![signup_user])
-            .attach(CORS)
     })
 }
