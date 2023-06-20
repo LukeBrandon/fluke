@@ -1,6 +1,7 @@
 use crate::components::input::InputField;
 use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsValue;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
@@ -11,7 +12,6 @@ pub struct RegistrationForm {
     pub last_name: String,
     pub email: String,
     pub password: String,
-    pub confirm_password: String,
 }
 
 #[function_component(Home)]
@@ -59,36 +59,36 @@ pub fn home() -> Html {
                 last_name: last_name_value,
                 email: email_value,
                 password: password_value,
-                confirm_password: confirm_password_value,
+            };
+            let form_json = match serde_json::to_string(&registration_form) {
+                Ok(json) => json,
+                Err(e) => {
+                    log::warn!("Failed to serialize form data: {:?}", e);
+                    return; // Or handle this error in another way
+                }
             };
 
-            log::info!("registration_form {:?}", &registration_form);
-
             let post_request = async move {
-                let response_result = Request::post("http://127.0.0.1:8000/signup")
-                    // ...
-                    .send()
-                    .await;
-
+                let response_result: Result<gloo_net::http::Response, gloo_net::Error> =
+                    Request::post("http://127.0.0.1:8000/signup")
+                        .header("Content-Type", "application/json")
+                        .body(JsValue::from_str(&form_json))
+                        .send()
+                        .await;
                 match response_result {
                     Ok(response) => {
                         log::info!("Response: {:?}", response);
-
                         if response.ok() {
                             let response_text = response.text().await.unwrap();
                             log::info!("Response Text: {:?}", response_text);
-                            // one of us, one of us --> /login
                         } else if response.status() == 409 {
                             log::warn!("Signup failed due to a duplicate username or email");
-                            // one of us, one of us --> /home
                         } else {
                             log::warn!("Request failed with status: {:?}", response.status());
-                            // something that shouldn't happen, todo: 404? 
                         }
                     }
                     Err(error) => {
                         log::warn!("Failed to make request: {:?}", error);
-                        // something that really shoudlnt happen, todo: 500?
                     }
                 }
             };
@@ -111,4 +111,3 @@ pub fn home() -> Html {
         </main>
     }
 }
-

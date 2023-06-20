@@ -1,74 +1,29 @@
 #[macro_use]
 extern crate rocket;
 use dotenvy::dotenv;
-use rocket::fs::{relative, FileServer};
-use rocket::http::Status;
-use rocket::response::status::Created;
-use rocket::serde::json::Json;
-use rocket::{fairing, http, Build, Request, Response, Rocket};
-use rocket_db_pools::{sqlx, Connection, Database};
-
-use crate::users::{CreateUserSchema, SignupError, UserModel};
+use rocket::fs::NamedFile;
+use rocket::Request;
+use rocket::{fairing, Build, Rocket};
+use rocket_db_pools::{sqlx, Database};
+use std::path::Path;
 
 mod messages;
 mod users;
-type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
 #[derive(Database)]
 #[database("fluke")]
 pub struct FlukeDb(sqlx::PgPool);
 
-pub struct CORS;
-#[rocket::async_trait]
-impl fairing::Fairing for CORS {
-    fn info(&self) -> fairing::Info {
-        fairing::Info {
-            name: "Add CORS headers to responses",
-            kind: fairing::Kind::Response,
-        }
-    }
-
-    async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Origin",
-            request.headers().get_one("Origin").unwrap_or("*"),
-        ));
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Methods",
-            "POST, GET, PATCH, OPTIONS",
-        ));
-        response.set_header(http::Header::new("Access-Control-Allow-Headers", "*"));
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Credentials",
-            "true",
-        ));
-    }
-}
-
-#[post("/signup", data = "<user>")]
-async fn signup(
-    db: Connection<FlukeDb>,
-    user: Json<CreateUserSchema>,
-) -> Result<Created<Json<UserModel>>, rocket::response::status::Custom<String>> {
-    match users::create_user(db, user.into_inner()).await {
-        Ok(user_model) => {
-            let location = format!("/users/{}", user_model.id);
-            Ok(Created::new(location).body(Json(user_model)))
-        }
-        Err(e) => {
-            let status = match e {
-                SignupError::NonUniqueIndexError => Status::Conflict,
-                _ => Status::InternalServerError,
-            };
-            Err(rocket::response::status::Custom(status, e.to_string()))
-        }
-    }
-}
-
-/// Catches all OPTION requests to get the CORS
 #[options("/<_..>")]
 fn all_options() {
     // Intentionally empty
+}
+
+#[catch(404)]
+async fn not_found(_req: &Request<'_>) -> Option<NamedFile> {
+    NamedFile::open(Path::new("static/").join("404.html"))
+        .await
+        .ok()
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
@@ -96,8 +51,8 @@ fn rocket() -> _ {
             "SQLx Migrations",
             run_migrations,
         ))
-        .attach(CORS)
-        .mount("/", routes![all_options, signup])
+        .mount("/", routes![all_options])
         .attach(messages::messages_stage())
         .attach(users::users_stage())
+        .register("/", catchers![not_found])
 }

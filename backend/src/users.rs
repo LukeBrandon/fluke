@@ -12,8 +12,6 @@ use sqlx::FromRow;
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
-// Matches fields from user registration form
-// In the future, hash password before storage
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CreateUserSchema {
     pub username: String,
@@ -37,7 +35,7 @@ pub struct UserModel {
 
 #[derive(Debug)]
 pub enum SignupError {
-    NonUniqueIndexError,
+    NonUniqueIdError,
     UnknownQueryError,
     UnknownDatabaseError,
 }
@@ -49,8 +47,8 @@ impl From<sqlx::Error> for SignupError {
                 let pg_error = db_error.downcast::<sqlx::postgres::PgDatabaseError>();
                 match pg_error.code() {
                     "23505" => {
-                        println!("Duplicate username key constraint violation detected.");
-                        SignupError::NonUniqueIndexError
+                        println!("Duplicate user ID.");
+                        SignupError::NonUniqueIdError
                     }
                     _ => {
                         println!("-- An error the server didn't account for --");
@@ -70,7 +68,7 @@ impl From<sqlx::Error> for SignupError {
 impl std::fmt::Display for SignupError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SignupError::NonUniqueIndexError => {
+            SignupError::NonUniqueIdError => {
                 write!(f, "Duplicate username or email contained a duplicate key.")
             }
             SignupError::UnknownQueryError => {
@@ -108,62 +106,23 @@ impl fairing::Fairing for CORS {
     }
 }
 
-#[post("/signup", data = "<user>")]
-async fn signup(
-    db: Connection<FlukeDb>,
-    user: Json<CreateUserSchema>,
-) -> Result<Created<Json<UserModel>>, rocket::response::status::Custom<String>> {
-    match create_user(db, user.into_inner()).await {
-        Ok(user_model) => {
-            let location = format!("/users/{}", user_model.id);
-            Ok(Created::new(location).body(Json(user_model)))
-        }
-        Err(e) => {
-            let status = match e {
-                SignupError::NonUniqueIndexError => Status::Conflict,
-                _ => Status::InternalServerError,
-            };
-            Err(rocket::response::status::Custom(status, e.to_string()))
-        }
-    }
-}
-
-#[get("/users/<username>")]
-pub async fn read_user_username(
-    mut db: Connection<FlukeDb>,
-    username: String,
-) -> Result<Option<Json<UserModel>>> {
-    let user = sqlx::query_as!(
-        UserModel,
-        "SELECT * FROM users WHERE username = $1",
-        username
-    )
-    .fetch_optional(&mut *db)
-    .await?;
-
-    Ok(user.map(Json))
-}
-
 #[get("/users")]
 pub async fn list_users(mut db: Connection<FlukeDb>) -> Result<Json<Vec<UserModel>>> {
-    let users = sqlx::query_as!(
-        UserModel,
-        "SELECT id, username, first_name, last_name, email, password FROM users"
-    )
-    .fetch_all(&mut *db)
-    .await?;
+    let list_of_users: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM user_profile")
+        .fetch_all(&mut *db)
+        .await?;
 
-    Ok(Json(users))
+    Ok(Json(list_of_users))
 }
 
 pub async fn create_user(
     mut db: Connection<FlukeDb>,
     user: CreateUserSchema,
 ) -> Result<UserModel, SignupError> {
-    let query = sqlx::query_as!(
+    let user_model: UserModel = sqlx::query_as!(
         UserModel,
         r#"
-        INSERT INTO users (username, first_name, last_name, email, password)
+        INSERT INTO user_profile (username, first_name, last_name, email, password)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
         "#,
@@ -176,23 +135,45 @@ pub async fn create_user(
     .fetch_one(&mut *db)
     .await
     .map_err(SignupError::from)?;
-    Ok(query)
+
+    Ok(user_model)
+}
+
+#[post("/signup", data = "<user>")]
+async fn signup_user(
+    db: Connection<FlukeDb>,
+    user: Json<CreateUserSchema>,
+) -> Result<Created<Json<UserModel>>, rocket::response::status::Custom<String>> {
+    match create_user(db, user.into_inner()).await {
+        Ok(user_model) => {
+            let location = format!("/users/{}", user_model.id);
+            Ok(Created::new(location).body(Json(user_model)))
+        }
+        Err(e) => {
+            let status = match e {
+                SignupError::NonUniqueIdError => Status::Conflict,
+                _ => Status::InternalServerError,
+            };
+            Err(rocket::response::status::Custom(status, e.to_string()))
+        }
+    }
 }
 
 #[delete("/users/<id>")]
 pub async fn delete_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<()>> {
-    let result = sqlx::query!("DELETE FROM users WHERE id = $1", id)
-        .execute(&mut *db)
-        .await?;
+    let result: sqlx::postgres::PgQueryResult =
+        sqlx::query!("DELETE FROM user_profile WHERE id = $1", id)
+            .execute(&mut *db)
+            .await?;
 
     Ok((result.rows_affected() == 1).then(|| ()))
 }
 
 pub fn users_stage() -> AdHoc {
     AdHoc::on_ignite("Users Stage", |rocket| async {
-        rocket.mount(
-            "/users/",
-            routes![read_user_username, list_users, delete_user],
-        )
+        rocket
+            .mount("/users/", routes![list_users, delete_user])
+            .mount("/", routes![signup_user])
+            .attach(CORS)
     })
 }
