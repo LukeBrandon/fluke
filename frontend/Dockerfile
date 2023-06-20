@@ -1,5 +1,4 @@
-# Frontend Dockerfile
-FROM rust:latest
+FROM rustlang/rust:nightly
 
 WORKDIR /usr/src/app
 
@@ -7,7 +6,8 @@ COPY . .
 
 RUN rustup target add wasm32-unknown-unknown
 RUN cargo install trunk cargo-watch
-RUN cargo install --path .
+COPY . .
+RUN cargo build 
 
 EXPOSE 3000
 

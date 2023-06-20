@@ -1,11 +1,10 @@
-# Backend Dockerfile
-FROM rust:latest
+FROM rustlang/rust:nightly
 
 WORKDIR /usr/src/app
 
-COPY . .
 RUN cargo install sqlx-cli --features postgres
-RUN cargo install --path .
+COPY . .
+RUN cargo build 
 
 EXPOSE 8000
 
