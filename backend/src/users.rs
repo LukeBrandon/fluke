@@ -80,7 +80,7 @@ impl std::fmt::Display for SignupError {
 
 #[get("/users")]
 pub async fn list_users(mut db: Connection<FlukeDb>) -> Result<Json<Vec<UserModel>>> {
-    let list_of_users: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM user_profile")
+    let list_of_users: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user")
         .fetch_all(&mut *db)
         .await?;
 
@@ -94,7 +94,7 @@ pub async fn create_user(
     let user_model: UserModel = sqlx::query_as!(
         UserModel,
         r#"
-        INSERT INTO user_profile (username, first_name, last_name, email, password)
+        INSERT INTO fluke_user (username, first_name, last_name, email, password)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
         "#,
@@ -134,7 +134,7 @@ async fn signup_user(
 #[delete("/users/<id>")]
 pub async fn delete_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<()>> {
     let result: sqlx::postgres::PgQueryResult =
-        sqlx::query!("DELETE FROM user_profile WHERE id = $1", id)
+        sqlx::query!("DELETE FROM fluke_user WHERE id = $1", id)
             .execute(&mut *db)
             .await?;
 
@@ -144,7 +144,7 @@ pub async fn delete_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<
 #[get("/<id>")]
 pub async fn get_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<Json<UserModel>>> {
     let user: Option<UserModel> =
-        sqlx::query_as!(UserModel, "SELECT * FROM user_profile WHERE id = $1", id)
+        sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
             .fetch_optional(&mut *db)
             .await?;
 

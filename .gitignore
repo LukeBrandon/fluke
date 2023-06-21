@@ -9,3 +9,4 @@ Cargo.lock
 
 # IDE 
 .vscode/
+frontend/.DS_Store
