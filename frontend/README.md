@@ -38,7 +38,12 @@ trunk build --release
 
 Unless overwritten, the output will be located in the `dist` directory.
 
+### Notes
+
 On WSL2 you may need to add some env variables to connect with ssl:
 
 - `export OPENSSL_INCLUDE_DIR=/usr/include/openssl`
 - `export OPENSSL_LIB_DIR=/usr/lib`
+
+Caution with using too many icons with `wasm-bindgen`, there have been issues
+with [refusal to load binaries that are too large](https://github.com/rustwasm/wasm-pack/issues/981)
