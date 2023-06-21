@@ -12,7 +12,8 @@ impl Component for About {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-        <main class={"md:mt-16"}>
+        <main class={"md:mt-20 p-5"}>
+            <h3 class="fluke-blue text-lg"> {"Fluke"} </h3>
             <p class="poem">
                 {"In the land where silence and speech intersect,"}<br />
                 {"Lives a noble entity, Fluke, with a project."}<br />

@@ -14,10 +14,13 @@ impl Component for Home {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <>
-                <Navbar />
+                 <>
+
+            <Navbar />
+            <div class="flex flex-col pt-[72px]"> // account for fixed nav bar size
                 <About />
-            </>
-        }
+            </div>
+        </>
+              }
     }
 }
