@@ -1,11 +1,10 @@
 use crate::components::input::InputField;
-use gloo_net::http::Request;
+use gloo_net::{http::Request, Error};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
-use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-#[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct RegistrationForm {
     pub username: String,
     pub first_name: String,
@@ -14,100 +13,102 @@ pub struct RegistrationForm {
     pub password: String,
 }
 
-#[function_component(SignupForm)]
-pub fn signup_form() -> Html {
-    let username = use_node_ref();
-    let first_name_ref = use_node_ref();
-    let last_name_ref = use_node_ref();
-    let email_ref = use_node_ref();
-    let password_ref = use_node_ref();
-    let confirm_password_ref = use_node_ref();
+pub enum Msg {
+    SubmitForm(web_sys::Event),
+    ReceiveResponse(Result<String, Error>),
+}
 
-    let password_is_valid = use_state(|| true);
-    let onsubmit = {
-        let username = username.clone();
-        let first_name_ref = first_name_ref.clone();
-        let last_name_ref = last_name_ref.clone();
-        let email_ref = email_ref.clone();
-        let password_ref = password_ref.clone();
-        let confirm_password_ref = confirm_password_ref.clone();
-        let password_is_valid = password_is_valid.clone();
+pub struct SignupForm {
+    username: String,
+    first_name: String,
+    last_name: String,
+    email: String,
+    password: String,
+    password_is_valid: bool,
+    error_message: Option<String>,
+}
 
-        Callback::from(move |event: SubmitEvent| {
-            event.prevent_default();
+impl Component for SignupForm {
+    type Message = Msg;
+    type Properties = ();
 
-            let username_value = username.cast::<HtmlInputElement>().unwrap().value();
-            let first_name_value = first_name_ref.cast::<HtmlInputElement>().unwrap().value();
-            let last_name_value = last_name_ref.cast::<HtmlInputElement>().unwrap().value();
-            let email_value = email_ref.cast::<HtmlInputElement>().unwrap().value();
-            let password_value = password_ref.cast::<HtmlInputElement>().unwrap().value();
-            let confirm_password_value = confirm_password_ref
-                .cast::<HtmlInputElement>()
-                .unwrap()
-                .value();
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            username: String::new(),
+            first_name: String::new(),
+            last_name: String::new(),
+            email: String::new(),
+            password: String::new(),
+            password_is_valid: true,
+            error_message: None,
+        }
+    }
 
-            if password_value != confirm_password_value {
-                password_is_valid.set(false);
-                return;
-            } else {
-                password_is_valid.set(true);
-            }
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::SubmitForm(event) => {
+                event.prevent_default();
 
-            let registration_form = RegistrationForm {
-                username: username_value,
-                first_name: first_name_value,
-                last_name: last_name_value,
-                email: email_value,
-                password: password_value,
-            };
-            let form_json = match serde_json::to_string(&registration_form) {
-                Ok(json) => json,
-                Err(e) => {
-                    log::warn!("Failed to serialize form data: {:?}", e);
-                    return; // Or handle this error in another way
-                }
-            };
+                if self.password_is_valid {
+                    let registration_form = RegistrationForm {
+                        username: self.username.clone(),
+                        first_name: self.first_name.clone(),
+                        last_name: self.last_name.clone(),
+                        email: self.email.clone(),
+                        password: self.password.clone(),
+                    };
 
-            let post_request = async move {
-                let response_result: Result<gloo_net::http::Response, gloo_net::Error> =
-                    Request::post("http://127.0.0.1:8000/signup")
+                    let request = Request::post("http://127.0.0.1:8000/signup")
                         .header("Content-Type", "application/json")
-                        .body(JsValue::from_str(&form_json))
-                        .send()
-                        .await;
-                match response_result {
-                    Ok(response) => {
-                        log::info!("Response: {:?}", response);
-                        if response.ok() {
-                            let response_text = response.text().await.unwrap();
-                            log::info!("Response Text: {:?}", response_text);
-                        } else if response.status() == 409 {
-                            log::warn!("Signup failed due to a duplicate username or email");
-                        } else {
-                            log::warn!("Request failed with status: {:?}", response.status());
-                        }
+                        .body(JsValue::from_str(
+                            &serde_json::to_string(&registration_form).unwrap(),
+                        ));
+
+                    let future = async {
+                        let resp = request.send().await.unwrap();
+                        assert_eq!(resp.status(), 200);
+                        resp.text().await.unwrap()
+                    };
+
+                    ctx.link().send_future(future);
+                    ctx.link().send_message(Msg::ReceiveResponse);
+                }
+                true
+            }
+            Msg::ReceiveResponse(response) => {
+                match response {
+                    Ok(data) => {
+                        self.error_message = Some(data);
                     }
                     Err(error) => {
-                        log::warn!("Failed to make request: {:?}", error);
+                        self.error_message = Some(error.to_string());
                     }
                 }
-            };
-            wasm_bindgen_futures::spawn_local(post_request);
-        })
-    };
-    html! {
-        <main class="home">
-            <h1 class="text-lg py-5">{"User Registration"}</h1>
-            <form {onsubmit} method="post" class="registration-form">
-                <InputField input_node_ref={username} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
-                <InputField input_node_ref={email_ref} name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
-                <InputField input_node_ref={first_name_ref} name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()}  />
-                <InputField input_node_ref={last_name_ref}  name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()}/>
-                <InputField input_node_ref={password_ref} name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
-                <InputField input_node_ref={confirm_password_ref} name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
-                <p class="error-text">{ if *password_is_valid { "" } else { "Passwords do not match" } }</p>
-                <button type="submit" class="button button-primary form-button">{"Submit"}</button>
-            </form>
-        </main>
+                true
+            }
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <main class="home">
+                <h1 class="text-lg py-5">{"User Registration"}</h1>
+                <form onsubmit={ctx.link().callback(|e: FormSubmit| Msg::SubmitForm(e))} class="registration-form">
+                    <InputField input_node_ref={username} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
+                    <InputField input_node_ref={email_ref} name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
+                    <InputField input_node_ref={first_name_ref} name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()}  />
+                    <InputField input_node_ref={last_name_ref}  name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()}/>
+                    <InputField input_node_ref={password_ref} name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
+                    <InputField input_node_ref={confirm_password_ref} name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
+                    <p class="error-text">{ if self.password_is_valid { "" } else { "Passwords do not match" } }</p>
+                    <p class="error-text">{self.error_message.as_ref().unwrap_or(&"".to_string())}</p>
+                    <button type="submit" class="button button-primary form-button">{"Submit"}</button>
+                </form>
+            </main>
+        }
+    }
+
+    fn changed(&mut self, _ctx: &Context<Self>, _props: &Self::Properties) -> bool {
+        false
     }
 }
