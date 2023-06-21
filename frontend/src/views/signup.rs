@@ -13,11 +13,12 @@ pub struct RegistrationForm {
     pub password: String,
 }
 
-pub enum Msg {
-    SubmitForm(web_sys::Event),
+pub enum SignupMsg {
+    SubmitForm(web_sys::SubmitEvent),
     ReceiveResponse(Result<String, Error>),
 }
 
+#[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
 pub struct SignupForm {
     username: String,
     first_name: String,
@@ -25,11 +26,18 @@ pub struct SignupForm {
     email: String,
     password: String,
     password_is_valid: bool,
-    error_message: Option<String>,
+    messages: Vec<String>,
+}
+
+impl SignupForm {
+    fn cancel(&mut self) {
+        self.username = "".to_string();
+        self.email = "".to_string();
+    }
 }
 
 impl Component for SignupForm {
-    type Message = Msg;
+    type Message = SignupMsg;
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -40,15 +48,13 @@ impl Component for SignupForm {
             email: String::new(),
             password: String::new(),
             password_is_valid: true,
-            error_message: None,
+            messages: Vec::new(),
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::SubmitForm(event) => {
-                event.prevent_default();
-
+            SignupMsg::SubmitForm(event) => {
                 if self.password_is_valid {
                     let registration_form = RegistrationForm {
                         username: self.username.clone(),
@@ -58,30 +64,50 @@ impl Component for SignupForm {
                         password: self.password.clone(),
                     };
 
-                    let request = Request::post("http://127.0.0.1:8000/signup")
-                        .header("Content-Type", "application/json")
-                        .body(JsValue::from_str(
-                            &serde_json::to_string(&registration_form).unwrap(),
-                        ));
-
-                    let future = async {
-                        let resp = request.send().await.unwrap();
-                        assert_eq!(resp.status(), 200);
-                        resp.text().await.unwrap()
+                    let post_request = async move {
+                        let response_result: Result<gloo_net::http::Response, gloo_net::Error> =
+                            Request::post("http://127.0.0.1:8000/signup")
+                                .header("Content-Type", "application/json")
+                                .body(JsValue::from_str(
+                                    &serde_json::to_string(&registration_form).unwrap(),
+                                ))
+                                .send()
+                                .await;
+                        match response_result {
+                            Ok(response) => {
+                                log::info!("Response: {:?}", response);
+                                if response.ok() {
+                                    let response_text = response.text().await.unwrap();
+                                    log::info!("Response Text: {:?}", response_text);
+                                } else if response.status() == 409 {
+                                    log::warn!(
+                                        "Signup failed due to a duplicate username or email"
+                                    );
+                                } else {
+                                    log::warn!(
+                                        "Request failed with status: {:?}",
+                                        response.status()
+                                    );
+                                }
+                            }
+                            Err(error) => {
+                                log::warn!("Failed to make request: {:?}", error);
+                            }
+                        }
                     };
+                    wasm_bindgen_futures::spawn_local(post_request);
 
-                    ctx.link().send_future(future);
-                    ctx.link().send_message(Msg::ReceiveResponse);
+                    // ctx.link().send_message(SignupMsg::ReceiveResponse);
                 }
                 true
             }
-            Msg::ReceiveResponse(response) => {
+            SignupMsg::ReceiveResponse(response) => {
                 match response {
                     Ok(data) => {
-                        self.error_message = Some(data);
+                        self.messages.push(data);
                     }
                     Err(error) => {
-                        self.error_message = Some(error.to_string());
+                        self.messages.push(error.to_string());
                     }
                 }
                 true
@@ -90,18 +116,23 @@ impl Component for SignupForm {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let onsubmit: Callback<web_sys::SubmitEvent> =
+            ctx.link().callback(|e: web_sys::SubmitEvent| {
+                e.prevent_default();
+                SignupMsg::SubmitForm(e)
+            });
+
         html! {
             <main class="home">
                 <h1 class="text-lg py-5">{"User Registration"}</h1>
-                <form onsubmit={ctx.link().callback(|e: FormSubmit| Msg::SubmitForm(e))} class="registration-form">
-                    <InputField input_node_ref={username} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
-                    <InputField input_node_ref={email_ref} name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
-                    <InputField input_node_ref={first_name_ref} name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()}  />
-                    <InputField input_node_ref={last_name_ref}  name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()}/>
-                    <InputField input_node_ref={password_ref} name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
-                    <InputField input_node_ref={confirm_password_ref} name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
+               <form onsubmit={onsubmit} class="registration-form">
+                    <InputField name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
+                    <InputField name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
+                    <InputField name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()}  />
+                    <InputField name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()}/>
+                    <InputField name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
+                    <InputField name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
                     <p class="error-text">{ if self.password_is_valid { "" } else { "Passwords do not match" } }</p>
-                    <p class="error-text">{self.error_message.as_ref().unwrap_or(&"".to_string())}</p>
                     <button type="submit" class="button button-primary form-button">{"Submit"}</button>
                 </form>
             </main>
