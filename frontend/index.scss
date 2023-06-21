@@ -94,26 +94,32 @@ li {
 }
 
 button {
-  color: var(--action-active);
-  background-color: var(--action-disabledBackground);
+  background-color: var(--color-canvas-overlay) !important;
+  color: var(--text-primary);
+  text-align: center;
+  border-width: var(--borderWidth-thin) !important;
+  border-color: var(--color-border-default) !important;
+  text-decoration: none;
+  margin-left: 1rem !important;
+  margin-right: 1rem !important;
+  cursor: pointer;
   border-radius: 10px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 
   &:hover {
-    background-color: var(--action-hover);
+    background-color: var(--color-primary-hover);
     cursor: pointer;
   }
 
   &:active {
-    background-color: var(--action-selected);
+    background-color: var(--color-primary-active);
+    transform: scale(0.95);
+    transition: background-color 0.1s ease, transform 0.1s ease;
   }
 
   &:disabled {
     color: var(--action-disabled);
-  }
-
-  &.button-primary {
-    grid-column: 1 / 3; /* This makes the button span the entire width of the grid. */
-    justify-self: center; /* This centers the button within the grid cell. */
+    background-color: var(--action-disabledBackground);
   }
 }
 
@@ -147,6 +153,13 @@ button {
   text-align: center;
   margin: 0;
   white-space: pre-wrap;
+}
+
+.home {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
 #wrapper {

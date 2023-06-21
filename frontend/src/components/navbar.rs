@@ -1,6 +1,7 @@
+use crate::app::Route;
 use yew::prelude::*;
 use yew_icons::{Icon, IconId};
-
+use yew_router::prelude::*;
 pub struct Navbar;
 
 impl Component for Navbar {
@@ -22,8 +23,7 @@ impl Component for Navbar {
             <div class="flex items-center lg:flex">
                 <a class="cursor-pointer">
                     <h3 class="text-2xl font-medium text-blue-500">
-                        <img class="h-10 object-cover"
-                            src="logo_transparent.png" alt="Logo"/>
+                        <img class="h-10 object-cover" src="logo_transparent.png" alt="Logo" />
                     </h3>
                 </a>
             </div>
@@ -40,7 +40,7 @@ impl Component for Navbar {
 
                 <a class="flex text-gray-600 hover:text-blue-500
                     cursor-pointer transition-colors duration-300">
-                   {"About Us"}
+                    {"About Us"}
                 </a>
             </div>
 
@@ -49,12 +49,11 @@ impl Component for Navbar {
                     cursor-pointer transition-colors duration-300">
                     {"Register"}
                 </a>
-                <a class="flex text-gray-600
-                    cursor-pointer transition-colors duration-300
-                    font-semibold text-blue-600">
-
-                    {"Login"}
-                </a>
+                    <Link<Route> classes={classes!("flex", "text-gray-600",
+                    "cursor-pointer", "transition-colors", "duration-300",
+                    "font-semibold", "text-blue-600")} to={Route::SignupForm}>
+                        { "Signup" }
+                    </Link<Route>>
             </div>
         </nav>
 

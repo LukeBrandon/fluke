@@ -97,7 +97,7 @@ pub fn signup_form() -> Html {
     };
     html! {
         <main class="home">
-            <h1>{"User Registration"}</h1>
+            <h1 class="text-lg py-5">{"User Registration"}</h1>
             <form {onsubmit} method="post" class="registration-form">
                 <InputField input_node_ref={username} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
                 <InputField input_node_ref={email_ref} name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
