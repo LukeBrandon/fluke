@@ -1,6 +1,5 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
-
 use crate::views::home::Home;
 
 #[derive(Clone, PartialEq, Routable)]
