@@ -7,9 +7,38 @@
   --action-selected: rgba(255, 255, 255, 0.08);
   --action-disabled: rgba(255, 255, 255, 0.26);
   --action-disabledBackground: rgba(255, 255, 255, 0.12);
-  --background-default: #121212;
-  --background-paper: #1e1e1e;
+  --background-default: #0d1117;
+  --background-darker: #010409;
   --divider: rgba(255, 255, 255, 0.12);
+
+  --color-primary: #1a73e8;
+  --color-primary-hover: #1565c0;
+  --color-primary-active: #0d47a1;
+  --color-secondary: #ff9800;
+  --color-secondary-hover: #f57c00;
+  --color-secondary-active: #e65100;
+
+  --boxShadow-thin: inset 0 0 0 max(1px, 0.0625rem);
+  --boxShadow-thick: inset 0 0 0 max(2px, 0.125rem);
+  --boxShadow-thicker: inset 0 0 0 max(4px, 0.25rem);
+  --borderWidth-thin: max(1px, 0.0625rem);
+  --borderWidth-thick: max(2px, 0.125rem);
+  --borderWidth-thicker: max(4px, 0.25rem);
+  --borderRadius-small: 3px;
+  --borderRadius-medium: 6px;
+  --borderRadius-large: 12px;
+  --borderRadius-full: 100vh;
+  --outline-focus-offset: -0.125rem;
+  --outline-focus-width: 0.125rem;
+
+  --color-canvas-default: #0d1117;
+  --color-canvas-overlay: #161b22;
+  --color-canvas-inset: #010409;
+  --color-canvas-subtle: #161b22;
+  --color-border-default: #30363d;
+  --color-border-muted: #21262d;
+  --color-border-subtle: rgba(240, 246, 252, 0.1);
+  --color-fluke-blue: #5dacbd;
 }
 
 html {
@@ -21,9 +50,16 @@ html {
   &,
   body {
     color: var(--text-primary);
-    background-color: var(--background-default);
     min-height: 100vh;
+    background-color: var(--background-default);
   }
+}
+
+header {
+  color: var(--color-fg-default);
+  background: var(--color-canvas-inset);
+  box-shadow: inset 0 calc(var(--borderWidth-thin, 1px) * -1)
+    var(--color-border-default);
 }
 
 main {
@@ -105,7 +141,7 @@ button {
 
 .poem {
   padding: 2rem;
-  color: #5dacbd;
+  color: var(--color-fluke-blue);
   font-family: monospace;
   font-size: 0.8rem;
   text-align: center;
@@ -121,11 +157,6 @@ button {
 #title {
   font-size: 2rem;
   text-align: center;
-}
-
-.header {
-  background-color: #333;
-  overflow: hidden;
 }
 
 .nav-item {
@@ -182,10 +213,6 @@ input[type="password"] {
   color: #ff0000;
 }
 
-// ----- MEDIA QUERIES ---------
-//  Adds a top margin of 64 pixels to prevent overlap
-@media (min-width: 640px) {
-  .md\:mt-16 {
-    margin-top: 4rem;
-  }
+.fluke-blue {
+  color: var(--color-fluke-blue);
 }

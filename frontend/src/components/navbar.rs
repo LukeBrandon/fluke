@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use yew_icons::{Icon, IconId};
 
 pub struct Navbar;
 
@@ -15,7 +16,10 @@ impl Component for Navbar {
         <nav class="flex justify-around py-4 bg-white/80
             backdrop-blur-md shadow-md w-full
             fixed top-0 left-0 right-0 z-10">
-            <div class="flex items-center">
+            <div class="lg:hidden">
+                <Icon icon_id={IconId::FontAwesomeSolidBars} />
+            </div>
+            <div class="flex items-center lg:flex">
                 <a class="cursor-pointer">
                     <h3 class="text-2xl font-medium text-blue-500">
                         <img class="h-10 object-cover"
