@@ -1,5 +1,5 @@
 -- create_users_table.up
-CREATE TABLE IF NOT EXISTS user_profile(
+CREATE TABLE IF NOT EXISTS fluke_user(
     id BIGSERIAL NOT NULL PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     first_name TEXT NOT NULL,
