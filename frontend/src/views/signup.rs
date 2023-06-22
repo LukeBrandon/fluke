@@ -54,7 +54,7 @@ impl Component for SignupForm {
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            SignupMsg::SubmitForm(event) => {
+            SignupMsg::SubmitForm(_) => {
                 if self.password_is_valid {
                     let registration_form = RegistrationForm {
                         username: self.username.clone(),
@@ -134,6 +134,7 @@ impl Component for SignupForm {
                     <InputField name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
                     <p class="error-text">{ if self.password_is_valid { "" } else { "Passwords do not match" } }</p>
                     <button type="submit" class="button button-primary form-button">{"Submit"}</button>
+                    <p class="text-white"> {"Text I only want displayed on an error, but I want it to the right of the sign-in button"}</p>
                 </form>
             </main>
         }
