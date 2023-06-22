@@ -1,5 +1,6 @@
 use crate::views::home::Home;
 use crate::views::signup::SignupForm;
+use crate::views::login::LoginForm;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -7,8 +8,10 @@ use yew_router::prelude::*;
 pub enum Route {
     #[at("/")]
     Home,
-    #[at("/login")]
+    #[at("/signup")]
     SignupForm,
+    #[at("/login")]
+    LoginForm,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -18,6 +21,7 @@ pub fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
         Route::SignupForm => html! { <SignupForm /> },
+        Route::LoginForm => html! { <LoginForm /> },
         Route::NotFound => html! { <h1>{ "404" }</h1> },
     }
 }

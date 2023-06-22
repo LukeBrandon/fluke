@@ -45,10 +45,11 @@ impl Component for Navbar {
             </div>
 
             <div class="flex items-center space-x-5">
-                <a class="flex text-gray-600 hover:text-blue-500
-                    cursor-pointer transition-colors duration-300">
-                    {"Register"}
-                </a>
+                    <Link<Route> classes={classes!("flex", "text-gray-600",
+                    "cursor-pointer", "transition-colors", "duration-300",
+                    "font-semibold", "text-blue-600")} to={Route::LoginForm}>
+                        {"Login"}
+                    </Link<Route>>
                     <Link<Route> classes={classes!("flex", "text-gray-600",
                     "cursor-pointer", "transition-colors", "duration-300",
                     "font-semibold", "text-blue-600")} to={Route::SignupForm}>
