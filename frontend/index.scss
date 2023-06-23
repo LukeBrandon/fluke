@@ -1,3 +1,7 @@
+$primary-color: #32b089;
+$text-color-bg-primary: rgb(233, 233, 233);
+$text-color: #444544;
+
 :root {
   --text-primary: rgba(255, 255, 255, 0.87);
   --text-secondary: rgba(255, 255, 255, 0.6);
@@ -228,4 +232,77 @@ input[type="password"] {
 
 .fluke-blue {
   color: var(--color-fluke-blue);
+}
+.nav {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+
+  .logo {
+    float: left;
+    margin-left: 2%;
+    width: 10%;
+    .logo-img {
+      width: 50px;
+    }
+  }
+
+  .nav-list {
+    list-style-type: none;
+    display: flex;
+    margin: 0;
+    width: 70%;
+    .nav-item {
+      cursor: pointer;
+      width: 30%;
+      display: flex;
+      a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        width: 100%;
+        height: 100%;
+        color: $text-color;
+        margin: 0;
+        text-align: center;
+        &:hover {
+          color: $primary-color;
+        }
+      }
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+
+  .nav-social-list {
+    list-style-type: none;
+    display: flex;
+    margin: 0;
+    width: 20%;
+    .nav-item {
+      cursor: pointer;
+      width: 25%;
+      display: flex;
+      a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        width: 100%;
+        height: 100%;
+        color: $text-color;
+        margin: 0;
+        text-align: center;
+        &:hover {
+          color: $primary-color;
+        }
+      }
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
 }

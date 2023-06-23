@@ -100,7 +100,7 @@ impl Component for LoginForm {
                 <h1 class="">{"User Registration"}</h1>
                <form onsubmit={onsubmit} class="registration-form">
                     <InputField name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
-                    <InputField name={"password".clone()} field_type={"password".clone()}  placeholder={"Create Password".clone()}/>
+                    <InputField name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
                     <button type="submit" class="button button-primary form-button">{"Submit"}</button>
                 </form>
             </main>

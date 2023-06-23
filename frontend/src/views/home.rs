@@ -1,4 +1,4 @@
-use crate::components::navbar::Navbar;
+use crate::components::nav::Nav;
 use crate::views::about::About;
 use yew::prelude::*;
 
@@ -14,13 +14,12 @@ impl Component for Home {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-                 <>
-
-            <Navbar />
-            <div class="flex flex-col pt-[72px]"> // account for fixed nav bar size
-                <About />
-            </div>
-        </>
-              }
+            <>
+                <Nav />
+                <div class="flex flex-col pt-[72px]"> // account for fixed nav bar size
+                    <About />
+                </div>
+            </>
+        }
     }
 }
