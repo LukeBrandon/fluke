@@ -53,17 +53,3 @@ Unless overwritten, the output will be located in the `dist` directory.
 <br>
 
 ### Caution with using too many icons with `wasm-bindgen`, there have been issues with [refusal to load binaries that are too large](https://github.com/rustwasm/wasm-pack/issues/981)
-
-<br>
-
-### For tailwind syntax highlighting and other VSCode features: 
-
-- Open VS Code Settings (Ctrl/Cmd P + > Settings)
-
-- Type Tailwind
-
-- Look for Tailwind CSS: Include Languages
-
-- Press add item
-
--  Add rust in key and html in value
