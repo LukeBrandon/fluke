@@ -41,7 +41,8 @@ impl Component for SignupForm {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         let signup_form_data = self.clone();
         match msg {
-            SignupMsg::SubmitForm(_) => {
+            SignupMsg::SubmitForm(e) => {
+                log::debug!("{:?}", e);
                 if self.password_is_valid {
                     let post_request = async move {
                         let response_result: Result<gloo_net::http::Response, gloo_net::Error> =
@@ -114,7 +115,6 @@ impl Component for SignupForm {
                     <InputField name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
                     <p class="error-text">{ if self.password_is_valid { "" } else { "Passwords do not match" } }</p>
                     <button type="submit" class="button button-primary form-button">{"Submit"}</button>
-                    <p class="text-white"> {"Text I only want displayed on an error, but I want it to the right of the sign-in button"}</p>
                 </form>
             </main>
         }
