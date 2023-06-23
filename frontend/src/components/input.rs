@@ -4,7 +4,8 @@ use yew::prelude::*;
 pub struct InputFieldProps {
     pub field_type: String,
     pub name: String,
-    pub placeholder: String, // Add this line
+    pub placeholder: String, 
+    pub input_node_ref: NodeRef,
 }
 
 #[function_component(InputField)]
@@ -13,6 +14,7 @@ pub fn input_field(props: &InputFieldProps) -> Html {
         field_type,
         name,
         placeholder,
+        input_node_ref
     } = props;
 
     html! {
@@ -20,7 +22,7 @@ pub fn input_field(props: &InputFieldProps) -> Html {
                 <input
                     type={field_type.clone()}
                     name={name.clone()}
-                    ref={NodeRef::default()}
+                    ref={input_node_ref.clone()}
                     placeholder={placeholder.clone()}
                 />
         </label>

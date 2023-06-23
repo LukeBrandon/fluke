@@ -1,7 +1,8 @@
-use crate::components::input::InputField;
+use crate::{components::input::InputField};
 use gloo_net::{http::Request, Error};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::JsValue;
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 pub enum SignupMsg {
@@ -10,15 +11,26 @@ pub enum SignupMsg {
 }
 
 #[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
-pub struct SignupForm {
+pub struct UserFormSubmission {
     pub username: String,
-    pub first_name: String,
-    pub last_name: String,
     pub email: String,
-    pub password: String,
+    pub first_name: String, 
+    pub last_name: String,
+    pub password: String
+}
+
+#[derive(Clone, PartialEq, Properties, Debug, Default)]
+pub struct SignupForm {
+    pub username_ref: NodeRef,
+    pub first_name_ref: NodeRef,
+    pub last_name_ref: NodeRef,
+    pub email_ref: NodeRef,
+    pub password_ref: NodeRef,
+    pub password_check_ref: NodeRef,
     pub password_is_valid: bool,
     pub messages: Vec<String>,
 }
+
 
 impl Component for SignupForm {
     type Message = SignupMsg;
@@ -26,11 +38,12 @@ impl Component for SignupForm {
 
     fn create(_ctx: &Context<Self>) -> Self {
         let s = Self {
-            username: String::new(),
-            first_name: String::new(),
-            last_name: String::new(),
-            email: String::new(),
-            password: String::new(),
+            username_ref: NodeRef::default(),
+            first_name_ref: NodeRef::default(),
+            last_name_ref: NodeRef::default(),
+            email_ref: NodeRef::default(),
+            password_ref: NodeRef::default(), 
+            password_check_ref: NodeRef::default(),
             password_is_valid: true,
             messages: Vec::new(),
         };
@@ -39,17 +52,30 @@ impl Component for SignupForm {
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let signup_form_data = self.clone();
         match msg {
-            SignupMsg::SubmitForm(e) => {
-                log::debug!("{:?}", e);
+            SignupMsg::SubmitForm(_) => {
+                // No way of getting around this cast to bind input data to form data
+                let username = self.username_ref.cast::<HtmlInputElement>().unwrap().value();
+                let first_name = self.first_name_ref.cast::<HtmlInputElement>().unwrap().value();
+                let last_name = self.last_name_ref.cast::<HtmlInputElement>().unwrap().value();
+                let email = self.email_ref.cast::<HtmlInputElement>().unwrap().value();
+                let password = self.password_ref.cast::<HtmlInputElement>().unwrap().value();
+                let password_check = self.password_check_ref.cast::<HtmlInputElement>().unwrap().value();
+                let registration_form = UserFormSubmission {
+                    username, first_name, last_name, email, password: password.clone()
+                };
+                if password.clone() != password_check {
+                    self.password_is_valid = false;
+                } else {
+                    self.password_is_valid = true;
+                };
                 if self.password_is_valid {
                     let post_request = async move {
                         let response_result: Result<gloo_net::http::Response, gloo_net::Error> =
                             Request::post("http://127.0.0.1:8000/signup")
                                 .header("Content-Type", "application/json")
                                 .body(JsValue::from_str(
-                                    &serde_json::to_string(&signup_form_data).unwrap(),
+                                    &serde_json::to_string(&registration_form).unwrap(),
                                 ))
                                 .send()
                                 .await;
@@ -75,6 +101,7 @@ impl Component for SignupForm {
                             }
                         }
                     };
+                    // Spawn the future into the local task queue to be run
                     wasm_bindgen_futures::spawn_local(post_request);
                 }
 
@@ -102,19 +129,18 @@ impl Component for SignupForm {
                 e.prevent_default();
                 SignupMsg::SubmitForm(e)
             });
-
         html! {
             <main class="home">
-                <h1 class="">{"User Registration"}</h1>
-               <form onsubmit={onsubmit} class="registration-form">
-                    <InputField name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
-                    <InputField name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()} />
-                    <InputField name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()} />
-                    <InputField name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()} />
-                    <InputField name={"password".clone()} field_type={"password".clone()}  placeholder={"Create Password".clone()}/>
-                    <InputField name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
-                    <p class="error-text">{ if self.password_is_valid { "" } else { "Passwords do not match" } }</p>
-                    <button type="submit" class="button button-primary form-button">{"Submit"}</button>
+                <h1 class="">{"Register"}</h1> 
+                <form {onsubmit} class="registration-form">
+                        <InputField input_node_ref={self.username_ref.clone()} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
+                        <InputField input_node_ref={self.email_ref.clone()} name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()} />
+                        <InputField input_node_ref={self.first_name_ref.clone()} name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()} />
+                        <InputField input_node_ref={self.last_name_ref.clone()} name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()} />
+                        <InputField input_node_ref={self.password_ref.clone()} name={"password".clone()} field_type={"password".clone()}  placeholder={"Create Password".clone()}/>
+                        <InputField input_node_ref={self.password_check_ref.clone()} name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
+                        <p class="error-text">{ if self.password_is_valid { "" } else { "Passwords do not match" } }</p>
+                        <button type="submit" class="button button-primary form-button">{"Submit"}</button>
                 </form>
             </main>
         }
