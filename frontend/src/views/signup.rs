@@ -104,12 +104,12 @@ impl Component for SignupForm {
 
         html! {
             <main class="home">
-                <h1 class="text-lg py-5">{"User Registration"}</h1>
+                <h1 class="">{"User Registration"}</h1>
                <form onsubmit={onsubmit} class="registration-form">
                     <InputField name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
-                    <InputField name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
-                    <InputField name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()}  />
-                    <InputField name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()}/>
+                    <InputField name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()} />
+                    <InputField name={"first_name".clone()} field_type={"text".clone()} placeholder={"First name".clone()} />
+                    <InputField name={"last_name".clone()} field_type={"text".clone()}  placeholder={"Last name".clone()} />
                     <InputField name={"password".clone()} field_type={"password".clone()}  placeholder={"Create Password".clone()}/>
                     <InputField name={"confirm_password".clone()} field_type={"password".clone()}  placeholder={"Retype password".clone()}/>
                     <p class="error-text">{ if self.password_is_valid { "" } else { "Passwords do not match" } }</p>

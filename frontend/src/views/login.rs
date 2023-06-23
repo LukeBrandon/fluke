@@ -97,7 +97,7 @@ impl Component for LoginForm {
 
         html! {
             <main class="home">
-                <h1 class="text-lg py-5">{"User Registration"}</h1>
+                <h1 class="">{"User Registration"}</h1>
                <form onsubmit={onsubmit} class="registration-form">
                     <InputField name={"email".clone()} field_type={"email".clone()}  placeholder={"Email".clone()}/>
                     <InputField name={"password".clone()} field_type={"password".clone()}  placeholder={"Create Password".clone()}/>

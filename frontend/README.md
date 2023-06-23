@@ -10,7 +10,6 @@
 - [Tailwind CSS for Styling](https://tailwindcss.com/)
 
 <br>
-<br>
 
 # Installation / Setup
 
@@ -32,48 +31,6 @@ Simply run the following command to install it:
 cargo install trunk wasm-bindgen-cli
 ```
 
-## Tailwind
-
-Tailwind doesn't offer clear documentation for bundling with trunk, but we can make it work with the Tailwind CLI. There 
-are two methods, one with `node.js`, and one with a standalone executable. 
-
-
-### Node.js
-
-```bash
-npm install -D tailwindcss
-
-npx tailwindcss init
-```
-
-You should already have the tailwind.config.js and tailwind.css files from cloning the repo. 
-
-Now, just build the template css files: 
-
-```bash
-npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch
-```
-
-### Standalone Executable 
-
-Find the [latest release](https://github.com/tailwindlabs/tailwindcss/releases/tag/v3.3.2) for your operating system. 
-
-This example is for macOS, but replace accordingly:
-
-```bash
-curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64
-chmod +x tailwindcss-macos-arm64
-mv tailwindcss-macos-arm64 tailwindcss
-
-# Start a watcher
-./tailwindcss -i input.css -o output.css --watch
-
-# Compile and minify your CSS for production
-./tailwindcss -i input.css -o output.css --minify
-```
-
-<br>
-
 # Run and Build
 
 ```bash
@@ -88,10 +45,25 @@ Unless overwritten, the output will be located in the `dist` directory.
 
 # Notes
 
-On WSL2 you may need to add some env variables to connect with ssl:
+### On WSL2 you may need to add some env variables to connect with ssl:
 
 - `export OPENSSL_INCLUDE_DIR=/usr/include/openssl`
 - `export OPENSSL_LIB_DIR=/usr/lib`
 
-Caution with using too many icons with `wasm-bindgen`, there have been issues
-with [refusal to load binaries that are too large](https://github.com/rustwasm/wasm-pack/issues/981)
+<br>
+
+### Caution with using too many icons with `wasm-bindgen`, there have been issues with [refusal to load binaries that are too large](https://github.com/rustwasm/wasm-pack/issues/981)
+
+<br>
+
+### For tailwind syntax highlighting and other VSCode features: 
+
+- Open VS Code Settings (Ctrl/Cmd P + > Settings)
+
+- Type Tailwind
+
+- Look for Tailwind CSS: Include Languages
+
+- Press add item
+
+-  Add rust in key and html in value
