@@ -89,7 +89,7 @@ pub async fn delete_user(
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
     let sql = "DELETE FROM fluke_user WHERE id = $1";
 
-    let _ = sqlx::query(&sql)
+    let _ = sqlx::query(sql)
         .bind(id)
         .execute(&pool)
         .await

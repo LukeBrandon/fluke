@@ -1,5 +1,5 @@
 use crate::configuration::models::{FlukeConfiguration, FlukePort};
-use dotenvy;
+use dotenvy::dotenv;
 use std::env;
 
 mod models;
@@ -18,11 +18,10 @@ fn load_port() -> Option<FlukePort> {
 
 /// Loads from a .env file the configuration for Fluke
 pub fn load_config() -> FlukeConfiguration {
-    dotenvy::dotenv().expect("No .env file provided.");
+    dotenv().expect("No .env file provided.");
 
     FlukeConfiguration {
         database_url: load_database_url(),
         port: load_port().unwrap_or(FlukePort::default()),
-        ..FlukeConfiguration::default()
     }
 }
