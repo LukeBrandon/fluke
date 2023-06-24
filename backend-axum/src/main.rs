@@ -5,26 +5,24 @@ use axum::{
     routing::{delete, get, post, put},
     Extension, Router,
 };
-use dotenvy;
 use sqlx::postgres::{PgPool, PgPoolOptions};
+use std::{net::SocketAddr, time::Duration};
 // use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use std::{net::SocketAddr, time::Duration};
-
+mod configuration;
 mod controllers;
 mod errors;
 mod models;
 
 #[tokio::main]
 async fn main() {
-    dotenvy::dotenv().unwrap();
-
-    let db_connection_str = std::env::var("DATABASE_URL").expect("Database url was not provided");
+    let config = configuration::load_config();
+    let port = config.port.0;
 
     let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
-        .connect(&db_connection_str)
+        .connect(&config.database_url)
         .await
         .expect("Could not connect to database");
 
@@ -40,11 +38,14 @@ async fn main() {
         .route("/messages", post(controllers::message::create_message))
         .route("/messages/:id", put(controllers::message::update_message))
         .route("/messages/:id", get(controllers::message::get_message))
-        .route("/messages/:id", delete(controllers::message::delete_message))
+        .route(
+            "/messages/:id",
+            delete(controllers::message::delete_message),
+        )
         .layer(Extension(pool));
 
     // run it with hyper
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], port));
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
