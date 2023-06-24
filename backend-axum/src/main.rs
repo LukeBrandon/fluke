@@ -42,6 +42,10 @@ async fn main() {
             "/messages/:id",
             delete(controllers::message::delete_message),
         )
+        .route("/users", get(controllers::user::list_users))
+        .route("/users", post(controllers::user::create_user))
+        .route("/users/:id", get(controllers::user::get_user))
+        .route("/users/:id", put(controllers::user::update_user))
         .layer(Extension(pool));
 
     // run it with hyper

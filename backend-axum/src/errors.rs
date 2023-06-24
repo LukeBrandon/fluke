@@ -1,12 +1,13 @@
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::{Json};
+use axum::Json;
 
-use serde_json::{json};
+use serde_json::json;
 
 pub enum CustomError {
     BadRequest,
     MessageNotFound,
+    UserNotFound,
     InternalServerError,
 }
 
@@ -18,6 +19,7 @@ impl IntoResponse for CustomError {
             }
             Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request"),
             Self::MessageNotFound => (StatusCode::NOT_FOUND, "Message Not Found"),
+            Self::UserNotFound => (StatusCode::NOT_FOUND, "User Not Found"),
         };
         (status, Json(json!({ "error": error_message }))).into_response()
     }

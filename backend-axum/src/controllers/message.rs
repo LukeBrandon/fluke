@@ -3,16 +3,16 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::{Extension, Json};
 
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 
 use sqlx::PgPool;
 
 use crate::errors::CustomError;
 
-use crate::models::message::{CreateMessageSchema, MessageModel };
+use crate::models::message::{CreateMessageSchema, MessageModel};
 
 pub async fn list_messages(Extension(pool): Extension<PgPool>) -> impl IntoResponse {
-    let sql = "SELECT * FROM message ".to_string();
+    let sql = "SELECT * FROM message";
 
     let task: Vec<MessageModel> = sqlx::query_as::<_, MessageModel>(&sql)
         .fetch_all(&pool)
@@ -26,7 +26,7 @@ pub async fn get_message(
     Path(id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<Json<MessageModel>, CustomError> {
-    let sql = "SELECT * FROM message where id = ($1)".to_string();
+    let sql = "SELECT * FROM message where id = ($1)";
 
     let message: MessageModel = sqlx::query_as::<_, MessageModel>(&sql)
         .bind(id)
@@ -41,7 +41,7 @@ pub async fn delete_message(
     Path(id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
-    let sql = "DELETE FROM message WHERE id = ($1)".to_string();
+    let sql = "DELETE FROM message WHERE id = ($1)";
 
     let _ = sqlx::query(&sql)
         .bind(id)
@@ -56,32 +56,45 @@ pub async fn update_message(
     Path(id): Path<i64>,
     Extension(pool): Extension<PgPool>,
     Json(message): Json<CreateMessageSchema>,
-) -> Result<(StatusCode, Json<CreateMessageSchema>), CustomError> {
-    sqlx::query("UPDATE message SET message=$1 WHERE id=$2")
-        .bind(&message.message)
-        .bind(id)
-        .execute(&pool)
-        .await
-        .map_err(|_| CustomError::InternalServerError)?;
+) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
 
-    Ok((StatusCode::OK, Json(message)))
+    let updated = sqlx::query_as!(
+        MessageModel,
+        "UPDATE message SET message=$1 WHERE id=$2 RETURNING *",
+        &message.message,
+        id
+    )
+    .fetch_one(&pool)
+    .await
+    .map_err(|_| CustomError::InternalServerError)?;
+
+    Ok((StatusCode::OK, Json(updated)))
 }
 
 pub async fn create_message(
     Extension(pool): Extension<PgPool>,
     Json(message): Json<CreateMessageSchema>,
-) -> Result<(StatusCode, Json<CreateMessageSchema>), CustomError> {
-    if message.message.is_empty(){
+) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
+    if message.message.is_empty() {
         return Err(CustomError::BadRequest);
     }
 
-    let sql = "INSERT INTO message (message) values ($1)".to_string();
+    let created = sqlx::query_as!(
+        MessageModel,
+        "INSERT INTO message (message) VALUES ($1) RETURNING *",
+        &message.message
+    )
+    .fetch_one(&pool)
+    .await
+    .map_err(|_| CustomError::InternalServerError)?;
 
-    sqlx::query(&sql)
-        .bind(&message.message)
-        .execute(&pool)
-        .await
-        .map_err(|_| CustomError::InternalServerError)?;
+    // let created: MessageModel = sqlx::query_as!(
+    //     MessageModel,
+    //     "INSERT INTO message (message) values ($1)",
+    //     message.message
+    // )
+    // .fetch_one(&pool)
+    // .await
 
-    Ok((StatusCode::CREATED, Json(message)))
+    Ok((StatusCode::CREATED, Json(created)))
 }
