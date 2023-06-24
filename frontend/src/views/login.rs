@@ -7,19 +7,20 @@ use yew::prelude::*;
 
 pub enum LoginMsg {
     SubmitForm(web_sys::SubmitEvent),
+    ReceiveResponse(String),
 }
 
 #[derive(Clone, PartialEq, Properties, Debug, Default, Serialize, Deserialize)]
 pub struct UserFormSubmission {
-    pub email: String,
+    pub username: String,
     pub password: String
 }
 
 #[derive(Clone, PartialEq, Properties, Debug, Default)]
 pub struct LoginForm {
-    pub login_email_ref: NodeRef,
+    pub login_username_ref: NodeRef,
     pub login_password_ref: NodeRef,
-    pub login_messages_ref: Vec<String>,
+    pub error_message: String,
 }
 
 
@@ -29,20 +30,21 @@ impl Component for LoginForm {
 
     fn create(_ctx: &Context<Self>) -> Self {
         let s = Self {
-            login_email_ref: NodeRef::default(),
+            login_username_ref: NodeRef::default(),
             login_password_ref: NodeRef::default(),
-            login_messages_ref: Vec::new(),
+            error_message: String::default()
         };
         s
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             LoginMsg::SubmitForm(_) => {
-                let email = self.login_email_ref.cast::<HtmlInputElement>().unwrap().value();
-                let password = self.login_password_ref.cast::<HtmlInputElement>().unwrap().value();
-                let login_form = UserFormSubmission {
-                    email, password
+                let link: html::Scope<LoginForm> = ctx.link().clone();
+                let username: String = self.login_username_ref.cast::<HtmlInputElement>().unwrap().value();
+                let password: String = self.login_password_ref.cast::<HtmlInputElement>().unwrap().value();
+                let login_form: UserFormSubmission = UserFormSubmission {
+                    username, password
                 };
                 let post_request = async move {
                     let response_result: Result<gloo_net::http::Response, gloo_net::Error> =
@@ -55,14 +57,11 @@ impl Component for LoginForm {
                             .await;
                     match response_result {
                         Ok(response) => {
-                            if response.ok() {
-                                let response_text = response.text().await.unwrap();
+                           if response.ok() {
+                                let response_text: String = response.text().await.unwrap();
                                 log::info!("Response Text: {:?}", response_text);
-                            } else if response.status() == 409 {
-                                log::warn!(
-                                    "Login failed due to a duplicate username or email"
-                                );
                             } else {
+                                link.send_message(LoginMsg::ReceiveResponse("Incorrect username or password.".to_string()));
                                 log::warn!(
                                     "Request failed with status: {:?}",
                                     response.status()
@@ -75,6 +74,11 @@ impl Component for LoginForm {
                     }
                 };
                 wasm_bindgen_futures::spawn_local(post_request);
+                true
+            }
+            LoginMsg::ReceiveResponse(response) => {
+                let message: String = response.clone();
+                self.error_message = message;
                 true
             }
         }
@@ -91,8 +95,13 @@ impl Component for LoginForm {
             <main class="home">
                 <h1 class="">{"Sign In"}</h1>
                <form onsubmit={onsubmit} class="registration-form">
-                    <InputField input_node_ref={self.login_email_ref.clone()} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
-                    <InputField input_node_ref={self.login_password_ref.clone()} name={"password".clone()} field_type={"password".clone()}  placeholder={"Create Password".clone()}/>
+                    <InputField input_node_ref={self.login_username_ref.clone()} name={"username".clone()} field_type={"text".clone()} placeholder={"Username".clone()} />
+                    <InputField input_node_ref={self.login_password_ref.clone()} name={"password".clone()} field_type={"password".clone()}  placeholder={"Password".clone()}/>
+                    { if !self.error_message.is_empty() {
+                           html!{<p class="error-text">{ &self.error_message }</p>}
+                        } else {
+                            html!{}
+                    } }
                     <button type="submit" class="button button-primary form-button">{"Submit"}</button>
                 </form>
             </main>
