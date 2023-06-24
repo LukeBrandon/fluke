@@ -88,13 +88,5 @@ pub async fn create_message(
     .await
     .map_err(|_| CustomError::InternalServerError)?;
 
-    // let created: MessageModel = sqlx::query_as!(
-    //     MessageModel,
-    //     "INSERT INTO message (message) values ($1)",
-    //     message.message
-    // )
-    // .fetch_one(&pool)
-    // .await
-
     Ok((StatusCode::CREATED, Json(created)))
 }

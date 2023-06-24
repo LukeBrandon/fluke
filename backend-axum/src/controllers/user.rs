@@ -3,11 +3,12 @@ use axum::{
     http::StatusCode,
     Extension,
 };
+use serde_json::{Value, json};
 use sqlx::PgPool;
 
 use crate::{
     errors::CustomError,
-    models::user::{CreateUserSchema, UserModel, UpdateUserSchema},
+    models::user::{CreateUserSchema, UpdateUserSchema, UserModel},
 };
 
 pub async fn list_users(
@@ -80,4 +81,19 @@ pub async fn create_user(
     .map_err(|_| CustomError::InternalServerError)?;
 
     Ok((StatusCode::CREATED, Json(user_model)))
+}
+
+pub async fn delete_user(
+    Path(id): Path<i64>,
+    Extension(pool): Extension<PgPool>,
+) -> Result<(StatusCode, Json<Value>), CustomError> {
+    let sql = "DELETE FROM fluke_user WHERE id = $1";
+
+    let _ = sqlx::query(&sql)
+        .bind(id)
+        .execute(&pool)
+        .await
+        .map_err(|_| CustomError::UserNotFound)?;
+
+    Ok((StatusCode::OK, Json(json!({"message": "User deleted"}))))
 }
