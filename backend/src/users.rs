@@ -20,6 +20,12 @@ pub struct CreateUserSchema {
     pub password: String,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct LoginUserSchema {
+    pub username: String,
+    pub password: String,
+}
+
 // Likely want to add 'Optional' fields for last name
 // If Optional fields added, change .fetch_* to .fetch_optional(...)
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow, FromForm)]
@@ -131,6 +137,38 @@ async fn signup_user(
     }
 }
 
+#[post("/login", data = "<user>")]
+async fn login_user(
+    db: Connection<FlukeDb>,
+    user: Json<LoginUserSchema>,
+) -> Result<Json<UserModel>,  rocket::response::status::Custom<String>> {
+    let mut db = db;
+    let result = sqlx::query_as!(
+        UserModel,
+        r#"
+        SELECT * FROM fluke_user 
+        WHERE username = $1 AND password = $2
+        "#,
+        user.username,
+        user.password
+    )
+    .fetch_optional(&mut *db)
+    .await
+    .map_err(|err| {
+        let err = SignupError::from(err);
+        rocket::response::status::Custom(Status::InternalServerError, err.to_string())
+    })?;
+
+    match result {
+        Some(user_model) => {
+            Ok(Json(user_model))
+        }
+        None => {
+            Err(rocket::response::status::Custom(Status::Unauthorized, "Invalid username or password".into()))
+        }
+    }
+}
+
 #[delete("/users/<id>")]
 pub async fn delete_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<()>> {
     let result: sqlx::postgres::PgQueryResult =
@@ -154,7 +192,7 @@ pub async fn get_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<Jso
 pub fn users_stage() -> AdHoc {
     AdHoc::on_ignite("Users Stage", |rocket| async {
         rocket
-            .mount("/users/", routes![list_users, delete_user, get_user])
+            .mount("/users/", routes![list_users, delete_user, get_user, login_user])
             .mount("/", routes![signup_user])
     })
 }
