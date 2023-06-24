@@ -57,7 +57,6 @@ pub async fn update_message(
     Extension(pool): Extension<PgPool>,
     Json(message): Json<CreateMessageSchema>,
 ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
-
     let updated = sqlx::query_as!(
         MessageModel,
         "UPDATE message SET message=$1 WHERE id=$2 RETURNING *",

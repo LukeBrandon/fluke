@@ -1,6 +1,6 @@
+use crate::configuration::models::{FlukeConfiguration, FlukePort};
 use dotenvy;
 use std::env;
-use crate::configuration::models::{FlukeConfiguration, FlukePort};
 
 mod models;
 

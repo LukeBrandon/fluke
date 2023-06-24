@@ -25,3 +25,6 @@ jobs:
 
     - name: Check Frontend Formatting
       run: cd frontend && cargo fmt -- --check
+
+    - name: Check Backend Formatting
+      run: cd backend-axum && cargo fmt -- --check

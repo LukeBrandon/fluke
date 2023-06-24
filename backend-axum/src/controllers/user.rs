@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
     Extension,
 };
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sqlx::PgPool;
 
 use crate::{
