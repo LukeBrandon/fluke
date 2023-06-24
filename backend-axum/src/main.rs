@@ -1,9 +1,9 @@
 use axum::{
     async_trait,
-    extract::{FromRef, FromRequestParts, State},
+    extract::{FromRef, FromRequestParts},
     http::{request::Parts, StatusCode},
-    routing::get,
-    Router,
+    routing::{delete, get, post, put},
+    Extension, Router,
 };
 use dotenvy;
 use sqlx::postgres::{PgPool, PgPoolOptions};
@@ -18,12 +18,12 @@ async fn main() {
 
     let db_connection_str = std::env::var("DATABASE_URL").expect("Database url was not provided");
 
-    let pool = PgPoolOptions::new()
+    let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
         .connect(&db_connection_str)
         .await
-        .expect("can't connect to database");
+        .expect("Could not connect to database");
 
     // Run migrations
     sqlx::migrate!()
@@ -33,9 +33,12 @@ async fn main() {
 
     // build our application with some routes
     let app = Router::new()
-        .route("/", get(using_connection_pool_extractor).post(using_connection_extractor),)
         .route("/messages", get(message::list_messages))
-        .with_state(pool);
+        .route("/messages", post(message::create_message))
+        .route("/messages/:id", put(message::update_message))
+        .route("/messages/:id", get(message::get_message))
+        .route("/messages/:id", delete(message::delete_message))
+        .layer(Extension(pool));
 
     // run it with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
@@ -44,16 +47,6 @@ async fn main() {
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-// we can extract the connection pool with `State`
-async fn using_connection_pool_extractor(
-    State(pool): State<PgPool>,
-) -> Result<String, (StatusCode, String)> {
-    sqlx::query_scalar("select 'hello world from pg'")
-        .fetch_one(&pool)
-        .await
-        .map_err(internal_error)
 }
 
 // we can also write a custom extractor that grabs a connection from the pool
@@ -75,16 +68,6 @@ where
 
         Ok(Self(conn))
     }
-}
-
-async fn using_connection_extractor(
-    DatabaseConnection(conn): DatabaseConnection,
-) -> Result<String, (StatusCode, String)> {
-    let mut conn = conn;
-    sqlx::query_scalar("select 'hello world from pg'")
-        .fetch_one(&mut conn)
-        .await
-        .map_err(internal_error)
 }
 
 /// Utility function for mapping any error into a `500 Internal Server Error`
