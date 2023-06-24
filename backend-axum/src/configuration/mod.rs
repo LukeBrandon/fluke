@@ -20,7 +20,6 @@ fn load_port() -> Option<FlukePort> {
 pub fn load_config() -> FlukeConfiguration {
     dotenvy::dotenv().expect("No .env file provided.");
 
-    //TODO: use constuctor to load in teh values
     FlukeConfiguration {
         database_url: load_database_url(),
         port: load_port().unwrap_or(FlukePort::default()),
