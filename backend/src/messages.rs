@@ -19,20 +19,22 @@ struct CreateMessageSchema {
 struct MessageModel {
     id: i64,
     message: String,
+    created_at: chrono::DateTime<chrono::Utc>,
 }
 
 #[get("/<id>")]
 async fn read_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Json<MessageModel>> {
-    let message = sqlx::query_as!(MessageModel, "SELECT * FROM message WHERE id = $1", id)
-        .fetch_one(&mut *db)
-        .await?;
+    let message: MessageModel =
+        sqlx::query_as!(MessageModel, "SELECT * FROM message WHERE id = $1", id)
+            .fetch_one(&mut *db)
+            .await?;
 
     Ok(Json(message))
 }
 
 #[get("/")]
 async fn list_messages(mut db: Connection<FlukeDb>) -> Result<Json<Vec<MessageModel>>> {
-    let messages = sqlx::query_as!(MessageModel, "SELECT id, message FROM message")
+    let messages = sqlx::query_as!(MessageModel, "SELECT * FROM message")
         .fetch_all(&mut *db)
         .await?;
 
@@ -65,7 +67,7 @@ async fn delete_message(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<(
 }
 
 pub fn messages_stage() -> AdHoc {
-    AdHoc::on_ignite("Mesasges Stage", |rocket| async {
+    AdHoc::on_ignite("Messages Stage", |rocket| async {
         rocket.mount(
             "/messages/",
             routes![read_message, list_messages, create_message, delete_message],

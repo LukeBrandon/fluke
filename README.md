@@ -1,7 +1,10 @@
 # Fluke
-Fluke is a discord-like app written in Rust
+### Fluke is a discord-like app written in Rust
 
-***
+Files are served from backup/static, to build files run 
+`cd frontend`
+`trunk build --release` 
+or run `dev/serve.sh`
 
 ### Stack
 - [yew.rs](https://yew.rs/)
