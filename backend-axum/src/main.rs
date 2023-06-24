@@ -10,7 +10,10 @@ use sqlx::postgres::{PgPool, PgPoolOptions};
 // use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use std::{net::SocketAddr, time::Duration};
-mod message;
+
+mod controllers;
+mod errors;
+mod models;
 
 #[tokio::main]
 async fn main() {
@@ -33,11 +36,11 @@ async fn main() {
 
     // build our application with some routes
     let app = Router::new()
-        .route("/messages", get(message::list_messages))
-        .route("/messages", post(message::create_message))
-        .route("/messages/:id", put(message::update_message))
-        .route("/messages/:id", get(message::get_message))
-        .route("/messages/:id", delete(message::delete_message))
+        .route("/messages", get(controllers::message::list_messages))
+        .route("/messages", post(controllers::message::create_message))
+        .route("/messages/:id", put(controllers::message::update_message))
+        .route("/messages/:id", get(controllers::message::get_message))
+        .route("/messages/:id", delete(controllers::message::delete_message))
         .layer(Extension(pool));
 
     // run it with hyper

@@ -3,41 +3,13 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::{Extension, Json};
 
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
-use sqlx::{FromRow, PgPool};
+use sqlx::PgPool;
 
-#[derive(Debug, Deserialize, Serialize, FromRow)]
-pub struct CreateMessageSchema {
-    message: String,
-}
+use crate::errors::CustomError;
 
-#[derive(Debug, Deserialize, Serialize, FromRow)]
-pub struct MessageModel {
-    id: i64,
-    message: String,
-    created_at: chrono::DateTime<chrono::Utc>,
-}
-
-pub enum CustomError {
-    BadRequest,
-    MessageNotFound,
-    InternalServerError,
-}
-
-impl IntoResponse for CustomError {
-    fn into_response(self) -> axum::response::Response {
-        let (status, error_message) = match self {
-            Self::InternalServerError => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
-            }
-            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request"),
-            Self::MessageNotFound => (StatusCode::NOT_FOUND, "Message Not Found"),
-        };
-        (status, Json(json!({ "error": error_message }))).into_response()
-    }
-}
+use crate::models::message::{CreateMessageSchema, MessageModel };
 
 pub async fn list_messages(Extension(pool): Extension<PgPool>) -> impl IntoResponse {
     let sql = "SELECT * FROM message ".to_string();
