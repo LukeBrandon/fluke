@@ -25,4 +25,6 @@ js-sys = "0.3.64"
 serde-json-wasm = "0.5.1"
 dotenvy = "0.15.7" 
 yew_icons = {version = "0.7", features = ["FontAwesomeSolidBars"]}
-
+yewdux = "0.9.3"
+validator = { version = "0.16.1", features = ["derive"] }
+chrono = { version = "0.4.26", features = ["serde"] }
