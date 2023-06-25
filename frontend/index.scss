@@ -306,3 +306,34 @@ input[type="password"] {
     }
   }
 }
+ 
+.loading-button {
+  width: 100%;
+  padding: 3em;
+  font-weight: bold;
+  border-radius: 4px;
+  outline: none;
+  border: none;
+  display: flex;
+  justify-content: center;
+
+  &.bg-ct-yellow-600 {
+    background-color: #f5a623; // Replace with your actual color
+  }
+
+  &.text-white {
+    color: white;
+  }
+
+  &.loading {
+    background-color: #ccc;
+  }
+
+  .loading-text {
+    color: #708390; // Replace with your actual color
+  }
+
+  .button-text {
+    color: inherit;
+  }
+}
