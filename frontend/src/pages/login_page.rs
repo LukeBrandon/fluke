@@ -127,8 +127,8 @@ pub fn login_page() -> Html {
                         email_input.set_value("");
                         password_input.set_value("");
 
-                        let form_json = serde_json::to_string(&form_data).unwrap();
-                        let res = api_login_user(&form_json).await;
+                        let form_json: String = serde_json::to_string(&form_data).unwrap();
+                        let res: Result<crate::api::types::UserLoginResponse, String> = api_login_user(&form_json).await;
                         match res {
                             Ok(_) => {
                                 set_page_loading(false, dispatch);

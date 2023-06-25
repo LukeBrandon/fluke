@@ -2,7 +2,7 @@ use super::types::{ErrorResponse, User, UserLoginResponse, UserResponse};
 use gloo_net::http::{ Request, RequestCredentials };
 
 pub async fn api_register_user(user_data: &str) -> Result<User, String> {
-    let response = match Request::post("http://localhost:8000/register")
+    let response = match Request::post("http://127.0.0.1:8000/login")
         .header("Content-Type", "application/json")
         .body(user_data)
         .send()
