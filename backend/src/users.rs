@@ -153,22 +153,18 @@ async fn login_user(
     .await
     .map_err(|err| {
         let err = SignupError::from(err);
-        println!("{:?}", err);
         info!("{:?}", err);
         rocket::response::status::Custom(Status::InternalServerError, err.to_string())
     })?;
 
     match result {
         Some(user_model) => {
-            println!("User found: {:?}", user_model);
+            debug!("User found: {:?}", user_model);
             Ok(Json(user_model))
         }
         None => {
             // Add debug statement for unauthorized login attempts
             debug!("Invalid email or password");
-            info!("Invalid email or password");
-            println!("Invalid email or password");
-
             Err(rocket::response::status::Custom(Status::Unauthorized, "Invalid email or password".into()))
         }
     }
