@@ -28,3 +28,4 @@ yew_icons = {version = "0.7", features = ["FontAwesomeSolidBars"]}
 yewdux = "0.9.3"
 validator = { version = "0.16.1", features = ["derive"] }
 chrono = { version = "0.4.26", features = ["serde"] }
+gloo = "0.8.1"
