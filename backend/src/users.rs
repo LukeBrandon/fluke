@@ -25,8 +25,6 @@ pub struct LoginUserSchema {
     pub password: String,
 }
 
-// Likely want to add 'Optional' fields for last name
-// If Optional fields added, change .fetch_* to .fetch_optional(...)
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow, FromForm)]
 pub struct UserModel {
     pub id: i64,
@@ -142,9 +140,6 @@ async fn login_user(
     user: Json<LoginUserSchema>,
 ) -> Result<Json<UserModel>, rocket::response::status::Custom<String>> {
     let mut db = db;
-
-    println!("Login request received. User email: {}", user.email);
-
     let result = sqlx::query_as!(
         UserModel,
         r#"
