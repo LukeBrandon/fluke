@@ -2,18 +2,44 @@ use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
 
+use lazy_static::lazy_static;
+use regex;
+
 use crate::api::user_api::api_register_user;
 use crate::components::{form_input::FormInput, loading_button::LoadingButton};
 use crate::router::{self, Route};
 use crate::store::{set_page_loading, Store};
 
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationErrors};
+use validator::{Validate, ValidationErrors, ValidationError};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_router::prelude::*;
 use yewdux::prelude::*;
+
+lazy_static! {
+    static ref RE_SPECIAL_CHAR: regex::Regex = regex::Regex::new("^.*?[@$!%*?&].*$").unwrap();
+}
+
+fn validate_password(password: &str) -> Result<(), ValidationError> {
+    let mut has_whitespace = false;
+    let mut has_upper = false;
+    let mut has_lower = false;
+    let mut has_digit = false;
+
+    for c in password.chars() {
+        has_whitespace |= c.is_whitespace();
+        has_lower |= c.is_lowercase();
+        has_upper |= c.is_uppercase();
+        has_digit |= c.is_digit(10);
+    }
+    if !has_whitespace && has_upper && has_lower && has_digit && password.len() >= 8 {
+        Ok(())
+    } else { 
+        return Err(ValidationError::new("Password Validation Failed"));
+    }
+}
 
 #[derive(Validate, Debug, Default, Clone, Serialize, Deserialize)]
 struct RegisterUserSchema {
@@ -26,6 +52,14 @@ struct RegisterUserSchema {
     )]
     email: String,
     #[validate(
+        custom(
+            function = "validate_password",
+            message = "Must Contain At Least One Upper Case, Lower Case and Number. Dont use spaces."
+        ),
+        regex(
+            path = "RE_SPECIAL_CHAR",
+            message = "Must Contain At Least One Special Character"
+        ),
         length(min = 1, message = "Password is required"),
         length(min = 6, message = "Password must be at least 6 characters")
     )]
