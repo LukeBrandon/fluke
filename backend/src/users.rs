@@ -120,7 +120,6 @@ async fn signup_user(
     match create_user(db, user.into_inner()).await {
         Ok(user_model) => {
             let location = format!("/users/{}", user_model.id);
-            println!("{:?}", user_model);
             info!("{:?}", user_model);
             Ok(Created::new(location).body(Json(user_model)))
         }
