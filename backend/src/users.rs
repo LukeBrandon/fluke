@@ -197,7 +197,7 @@ pub async fn get_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<Jso
 pub fn users_stage() -> AdHoc {
     AdHoc::on_ignite("Users Stage", |rocket| async {
         rocket
-            .mount("/users/", routes![list_users, delete_user, get_user])
-            .mount("/", routes![signup_user, login_user])
+            .mount("/users/", routes![delete_user, get_user])
+            .mount("/", routes![signup_user, login_user,  list_users])
     })
 }
