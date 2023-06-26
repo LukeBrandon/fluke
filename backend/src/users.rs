@@ -102,7 +102,7 @@ pub async fn create_user(
         "#,
         user.first_name,
         user.last_name,
-        user.email,
+        user.email.to_lowercase(),
         user.password
     )
     .fetch_one(&mut *db)
@@ -115,8 +115,9 @@ pub async fn create_user(
 #[post("/register", data = "<user>")]
 async fn signup_user(
     db: Connection<FlukeDb>,
-    user: Json<CreateUserSchema>,
+    mut user: Json<CreateUserSchema>,
 ) -> Result<Created<Json<UserModel>>, rocket::response::status::Custom<String>> {
+    user.email = user.email.to_lowercase();
     match create_user(db, user.into_inner()).await {
         Ok(user_model) => {
             let location = format!("/users/{}", user_model.id);
@@ -145,7 +146,7 @@ async fn login_user(
         SELECT * FROM fluke_user 
         WHERE email = $1 AND password = $2
         "#,
-        user.email,
+        user.email.to_lowercase(),
         user.password
     )
     .fetch_optional(&mut *db)
@@ -162,7 +163,6 @@ async fn login_user(
             Ok(Json(user_model))
         }
         None => {
-            // Add debug statement for unauthorized login attempts
             debug!("Invalid email or password");
             Err(rocket::response::status::Custom(Status::Unauthorized, "Invalid email or password".into()))
         }

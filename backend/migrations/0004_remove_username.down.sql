@@ -1,0 +1,2 @@
+ALTER TABLE fluke_user
+ADD COLUMN username TEXT NOT NULL UNIQUE;
