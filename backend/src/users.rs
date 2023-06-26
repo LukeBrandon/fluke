@@ -11,6 +11,12 @@ use sqlx::FromRow;
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserLoginResponse {
+    pub status: String,
+    pub user_id: i64,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CreateUserSchema {
     pub first_name: String,
@@ -138,7 +144,7 @@ async fn signup_user(
 async fn login_user(
     db: Connection<FlukeDb>,
     user: Json<LoginUserSchema>,
-) -> Result<Json<UserModel>, rocket::response::status::Custom<String>> {
+) -> Result<Json<UserLoginResponse>, rocket::response::status::Custom<String>> {
     let mut db = db;
     let result = sqlx::query_as!(
         UserModel,
@@ -160,7 +166,11 @@ async fn login_user(
     match result {
         Some(user_model) => {
             debug!("User found: {:?}", user_model);
-            Ok(Json(user_model))
+            let response = UserLoginResponse {
+                status: "logged in".to_string(),
+                user_id: user_model.id,
+            };
+            Ok(Json(response))
         }
         None => {
             debug!("Invalid email or password");
@@ -168,7 +178,6 @@ async fn login_user(
         }
     }
 }
-
 #[delete("/users/<id>")]
 pub async fn delete_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<()>> {
     let result: sqlx::postgres::PgQueryResult =
