@@ -24,7 +24,7 @@ pub struct UserResponse {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserLoginResponse {
     pub status: String,
-    pub token: String,
+    pub user_id: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

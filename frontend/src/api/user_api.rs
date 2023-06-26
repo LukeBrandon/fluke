@@ -36,34 +36,43 @@ pub async fn api_login_user(credentials: &str) -> Result<UserLoginResponse, Stri
         .await
     {
         Ok(res) => {
-            // Log the credentials to console
             log::debug!("Sent credentials: {}", credentials);
+            log::info!("Response: {:?}", res);
             res
         },
-        Err(_) => return Err("Failed to make request".to_string()),
+        Err(e) => {
+            log::error!("Error making request: {:?}", e);
+            return Err("Failed to make request".to_string());
+        },
     };
 
-    if response.status() == 401 {
-        let body = response.text().await.unwrap_or_else(|_| "Failed to read response body".to_string());
+    let status = response.status();
+    let body = response.text().await.unwrap_or_else(|_| "Failed to read response body".to_string());
+
+    if status == 401 {
         log::debug!("{:?}", body);
         return Err(body);
     }
 
-    if response.status() != 200 {
-        let error_response = response.json::<ErrorResponse>().await;
+    if status != 200 {
+        let error_response = serde_json::from_str::<ErrorResponse>(&body);
         if let Ok(error_response) = error_response {
             return Err(error_response.message);
         } else {
-            return Err(format!("API error: {}", response.status()));
+            log::error!("Unexpected API error. Status: {}. Body: {}", status, body);
+            return Err(format!("API error: {}", status));
         }
     }
    
-    let res_json = response.json::<UserLoginResponse>().await;
-    match res_json {
+    match serde_json::from_str::<UserLoginResponse>(&body) {
         Ok(data) => Ok(data),
-        Err(_) => Err("Failed to parse response".to_string()),
+        Err(e) => {
+            log::error!("Failed to parse response. Body: {}. Error: {:?}", body, e);
+            Err("Failed to parse response".to_string())
+        },
     }
 }
+
 pub async fn api_user_info() -> Result<User, String> {
     let response = match Request::get("http://127.0.0.1:8000/get_user")
         .credentials(RequestCredentials::Include)
@@ -71,7 +80,9 @@ pub async fn api_user_info() -> Result<User, String> {
         .await
     {
         Ok(res) => res,
-        Err(_) => return Err("Failed to make request".to_string()),
+        Err(e) => {
+            log::info!("Failure here: {:?}", e);
+            return Err("Failed to make request".to_string())}
     };
 
     if response.status() != 200 {
