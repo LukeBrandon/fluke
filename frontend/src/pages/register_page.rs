@@ -215,17 +215,17 @@ pub fn register_page() -> Html {
     };
 
     html! {
-        <section class="py-8 fluke-bg-default min-h-screen grid place-items-center">
-            <div class="w-full">
-                <h1 class="text-4xl xl:text-6xl text-center font-[600] text-ct-yellow-600 mb-4">
+        <section class="section">
+            <div class="container">
+                <h1 class="">
                     {" Welcome to Fluke!"}
                 </h1>
-                <h2 class="text-lg text-center mb-4 text-ct-dark-200">
+                <h2 class="">
                     {"Sign Up To Get Started!"}
                 </h2>
                 <form
                     onsubmit={on_submit}
-                    class="max-w-md w-full mx-auto overflow-hidden shadow-lg fluke-bg-overlay rounded-2xl p-8 space-y-5"
+                    class=""
                 >
                     <FormInput
                         label="First Name"
@@ -272,11 +272,11 @@ pub fn register_page() -> Html {
                     />
                     <span class="block">
                         {"Already have an account?"} {" "}
-                        <Link<Route> to={Route::LoginPage} classes="fluke-text-primary">{"Login Here"}</Link<Route>>
+                        <Link<Route> to={Route::LoginPage} classes="fluke-blue">{"Login Here"}</Link<Route>>
                     </span>
                     <LoadingButton
                         loading={store.page_loading}
-                        text_color={Some("fluke-text-primary".to_string())}
+                        text_color={Some("fluke-blue".to_string())}
                     >
                         {" Sign Up"}
                     </LoadingButton>

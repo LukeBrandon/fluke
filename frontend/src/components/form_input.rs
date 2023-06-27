@@ -53,19 +53,19 @@ pub fn form_input_component(props: &Props) -> Html {
     };
 
     html! {
-    <div>
-      <label html={props.name.clone()} class="block fluke-text-primary mb-3">
+    <div class="form-input">
+      <label html={props.name.clone()} class="">
         {props.label.clone()}
       </label>
       <input
         type={input_type}
         placeholder=""
-        class="block w-full rounded-2xl appearance-none focus:outline-none py-2 px-4"
+        class=""
         ref={props.input_ref.clone()}
         onchange={onchange}
         onblur={on_blur}
       />
-    <span class="fluke-text-warning text-xs pt-1 block">
+    <span>
         {error_message}
     </span>
     </div>

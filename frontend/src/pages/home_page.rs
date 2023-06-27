@@ -16,7 +16,7 @@ impl Component for HomePage {
         html! {
             <> 
                 <Header />
-                <section class="flex flex-col pt-[72px]"> // account for fixed nav bar size
+                <section class="section"> // account for fixed nav bar size
                     <AboutPage />
                 </section>
             </>

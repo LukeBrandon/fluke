@@ -5,7 +5,7 @@ use std::rc::Rc;
 use crate::api::user_api::api_login_user;
 use crate::components::{form_input::FormInput, loading_button::LoadingButton};
 use crate::router::{self, Route};
-use crate::store::{set_page_loading, set_user_auth_error, Store};
+use crate::store::{set_page_loading, set_user_auth_error, Store, set_auth_user};
 
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationErrors};
@@ -133,6 +133,7 @@ pub fn login_page() -> Html {
                         match res {
                             Ok(_) => {
                                 set_page_loading(false, dispatch);
+                                // set_auth_user(.unwrap(), dispatch);
                                 navigator.push(&router::Route::ProfilePage);
                                 log::info!("Successful login: {:?}", &form_json)
                             }
@@ -153,42 +154,42 @@ pub fn login_page() -> Html {
     };
 
     html! {
-    <section class="fluke-bg-default min-h-screen grid place-items-center">
-      <div class="w-full">
-        <h1 class="text-4xl xl:text-6xl text-center font-[400] fluke-text-primary mb-4">
+    <section class="section">
+      <div class="container">
+        <h1 class="">
           {"Welcome Back"}
         </h1>
-        <h2 class="text-lg text-center mb-4 text-ct-dark-200">
+        <h2 class="">
           {"Login to have access"}
         </h2>
         {if !store.user_auth_error.is_empty() {
             html! {
-                <div class="text-center error-message">{store.user_auth_error.clone()}</div>
+                <div class="error-text">{store.user_auth_error.clone()}</div>
             }
         } else {
             html! {}
         }}
           <form
             onsubmit={on_submit}
-            class="max-w-md w-full mx-auto overflow-hidden shadow-lg fluke-bg-surface rounded-2xl p-8 space-y-5"
+            class=""
           >
             <FormInput label="Email" name="email" input_type="email" input_ref={email_input_ref} handle_onchange={handle_email_input} errors={&*validation_errors} handle_on_input_blur={validate_input_on_blur.clone()} />
             <FormInput label="Password" name="password" input_type="password" input_ref={password_input_ref} handle_onchange={handle_password_input} errors={&*validation_errors} handle_on_input_blur={validate_input_on_blur.clone()}/>
 
-            <div class="text-right">
+            <div class="">
               <a href="#">
                 {"Forgot Password?"}
               </a>
             </div>
             <LoadingButton
               loading={store.page_loading}
-              text_color={Some("fluke-text-primary".to_string())}
+              text_color={Some("fluke-blue".to_string())}
             >
               {"Login"}
             </LoadingButton>
             <span class="block">
               {"Need an account?"} {" "}
-              <Link<Route> to={Route::RegisterPage} classes="fluke-text-primary">{ "Sign Up Here" }</Link<Route>>
+              <Link<Route> to={Route::RegisterPage} classes="fluke-blue">{ "Sign Up Here" }</Link<Route>>
             </span>
           </form>
       </div>

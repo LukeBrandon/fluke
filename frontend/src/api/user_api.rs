@@ -46,8 +46,8 @@ pub async fn api_login_user(credentials: &str) -> Result<UserLoginResponse, Stri
         },
     };
 
-    let status = response.status();
-    let body = response.text().await.unwrap_or_else(|_| "Failed to read response body".to_string());
+    let status: u16 = response.status();
+    let body: String = response.text().await.unwrap_or_else(|_| "Failed to read response body".to_string());
 
     if status == 401 {
         log::debug!("{:?}", body);
@@ -75,7 +75,7 @@ pub async fn api_login_user(credentials: &str) -> Result<UserLoginResponse, Stri
 
 pub async fn api_user_info() -> Result<User, String> {
     let response = match Request::get("http://127.0.0.1:8000/get_user")
-        .credentials(RequestCredentials::Include)
+        // .body()
         .send()
         .await
     {
