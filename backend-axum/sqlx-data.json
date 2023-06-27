@@ -1,0 +1,273 @@
+{
+  "db": "PostgreSQL",
+  "20fb227af79d7cd7994b09c37cdcba4ad02fda28fe5537984e772e039c1504ce": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "email",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 5,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            UPDATE fluke_user SET username=($2), first_name=($3), last_name=($4), password=($5)\n            WHERE id=$1\n            RETURNING *\n        "
+  },
+  "2f1d1e222c52009e2dd4238b3cd44c489364fe7bf69b466f6b26e03db031eb39": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "email",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 5,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8"
+        ]
+      }
+    },
+    "query": "SELECT * FROM fluke_user WHERE id = $1"
+  },
+  "7ec7e27a426675cfa87e1a3c0772af5346de9f0d0b1a918860b5bf359f0c3f65": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "message",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO message (message) VALUES ($1) RETURNING *"
+  },
+  "871eb1df908f281a2a896e72fd17ce9afd372d7955514e72727c135f47cb62dc": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "email",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 5,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": []
+      }
+    },
+    "query": "SELECT * FROM fluke_user"
+  },
+  "8f5249d91e1397f4f98ece20d5f86cc5ca4539a1a173d69f63c9ddafc5595491": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "message",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "created_at",
+          "ordinal": 2,
+          "type_info": "Timestamptz"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Int8"
+        ]
+      }
+    },
+    "query": "UPDATE message SET message=$1 WHERE id=$2 RETURNING *"
+  },
+  "f4e4884e2c2472db793854e49d3cc6c6b755ad59037d82bc575f96ca28690357": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 3,
+          "type_info": "Text"
+        },
+        {
+          "name": "email",
+          "ordinal": 4,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 5,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text",
+          "Varchar",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n        INSERT INTO fluke_user (first_name, last_name, email, password)\n        VALUES ($1, $2, $3, $4)\n        RETURNING *\n        "
+  }
+}
