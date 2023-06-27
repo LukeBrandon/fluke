@@ -75,7 +75,6 @@ pub async fn api_login_user(credentials: &str) -> Result<UserLoginResponse, Stri
 
 pub async fn api_user_info() -> Result<User, String> {
     let response = match Request::get("http://127.0.0.1:8000/get_user")
-        // .body()
         .send()
         .await
     {
