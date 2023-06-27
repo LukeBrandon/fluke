@@ -11,9 +11,14 @@ use sqlx::FromRow;
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct UserLoginResponse {
+    pub status: String,
+    pub user_id: i64,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CreateUserSchema {
-    pub username: String,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -22,16 +27,13 @@ pub struct CreateUserSchema {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LoginUserSchema {
-    pub username: String,
+    pub email: String,
     pub password: String,
 }
 
-// Likely want to add 'Optional' fields for last name
-// If Optional fields added, change .fetch_* to .fetch_optional(...)
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow, FromForm)]
 pub struct UserModel {
     pub id: i64,
-    pub username: String,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -74,7 +76,7 @@ impl std::fmt::Display for SignupError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SignupError::NonUniqueIdError => {
-                write!(f, "Duplicate username or email contained a duplicate key.")
+                write!(f, "Duplicate email contained a duplicate key.")
             }
             SignupError::UnknownQueryError => {
                 write!(f, "Database query contained an unspecified error.")
@@ -100,14 +102,13 @@ pub async fn create_user(
     let user_model: UserModel = sqlx::query_as!(
         UserModel,
         r#"
-        INSERT INTO fluke_user (username, first_name, last_name, email, password)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO fluke_user (first_name, last_name, email, password)
+        VALUES ($1, $2, $3, $4)
         RETURNING *
         "#,
-        user.username,
         user.first_name,
         user.last_name,
-        user.email,
+        user.email.to_lowercase(),
         user.password
     )
     .fetch_one(&mut *db)
@@ -117,14 +118,16 @@ pub async fn create_user(
     Ok(user_model)
 }
 
-#[post("/signup", data = "<user>")]
+#[post("/register", data = "<user>")]
 async fn signup_user(
     db: Connection<FlukeDb>,
-    user: Json<CreateUserSchema>,
+    mut user: Json<CreateUserSchema>,
 ) -> Result<Created<Json<UserModel>>, rocket::response::status::Custom<String>> {
+    user.email = user.email.to_lowercase();
     match create_user(db, user.into_inner()).await {
         Ok(user_model) => {
             let location = format!("/users/{}", user_model.id);
+            info!("{:?}", user_model);
             Ok(Created::new(location).body(Json(user_model)))
         }
         Err(e) => {
@@ -141,34 +144,40 @@ async fn signup_user(
 async fn login_user(
     db: Connection<FlukeDb>,
     user: Json<LoginUserSchema>,
-) -> Result<Json<UserModel>,  rocket::response::status::Custom<String>> {
+) -> Result<Json<UserLoginResponse>, rocket::response::status::Custom<String>> {
     let mut db = db;
     let result = sqlx::query_as!(
         UserModel,
         r#"
         SELECT * FROM fluke_user 
-        WHERE username = $1 AND password = $2
+        WHERE email = $1 AND password = $2
         "#,
-        user.username,
+        user.email.to_lowercase(),
         user.password
     )
     .fetch_optional(&mut *db)
     .await
     .map_err(|err| {
         let err = SignupError::from(err);
+        info!("{:?}", err);
         rocket::response::status::Custom(Status::InternalServerError, err.to_string())
     })?;
 
     match result {
         Some(user_model) => {
-            Ok(Json(user_model))
+            debug!("User found: {:?}", user_model);
+            let response = UserLoginResponse {
+                status: "logged in".to_string(),
+                user_id: user_model.id,
+            };
+            Ok(Json(response))
         }
         None => {
-            Err(rocket::response::status::Custom(Status::Unauthorized, "Invalid username or password".into()))
+            debug!("Invalid email or password");
+            Err(rocket::response::status::Custom(Status::Unauthorized, "Invalid email or password".into()))
         }
     }
 }
-
 #[delete("/users/<id>")]
 pub async fn delete_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<()>> {
     let result: sqlx::postgres::PgQueryResult =
@@ -192,7 +201,7 @@ pub async fn get_user(mut db: Connection<FlukeDb>, id: i64) -> Result<Option<Jso
 pub fn users_stage() -> AdHoc {
     AdHoc::on_ignite("Users Stage", |rocket| async {
         rocket
-            .mount("/users/", routes![list_users, delete_user, get_user])
-            .mount("/", routes![signup_user, login_user])
+            .mount("/users/", routes![delete_user, get_user])
+            .mount("/", routes![signup_user, login_user,  list_users])
     })
 }
