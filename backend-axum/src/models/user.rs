@@ -3,7 +3,6 @@ use sqlx::FromRow;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CreateUserSchema {
-    pub username: String,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -12,7 +11,6 @@ pub struct CreateUserSchema {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct UpdateUserSchema {
-    pub username: String,
     pub first_name: String,
     pub last_name: String,
     pub password: String,
@@ -22,7 +20,6 @@ pub struct UpdateUserSchema {
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow)]
 pub struct UserModel {
     pub id: i64,
-    pub username: String,
     pub first_name: String,
     pub last_name: String,
     pub email: String,

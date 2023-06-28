@@ -1,3 +1,5 @@
+use std::fmt;
+
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
@@ -22,5 +24,51 @@ impl IntoResponse for CustomError {
             Self::UserNotFound => (StatusCode::NOT_FOUND, "User Not Found"),
         };
         (status, Json(json!({ "error": error_message }))).into_response()
+    }
+}
+
+#[derive(Debug)]
+pub enum SignupError {
+    NonUniqueIdError,
+    UnknownQueryError,
+    UnknownDatabaseError,
+}
+
+impl From<sqlx::Error> for SignupError {
+    fn from(error: sqlx::Error) -> Self {
+        match error {
+            sqlx::Error::Database(db_error) => {
+                let pg_error = db_error.downcast::<sqlx::postgres::PgDatabaseError>();
+                match pg_error.code() {
+                    "23505" => {
+                        println!("Duplicate user ID.");
+                        SignupError::NonUniqueIdError
+                    }
+                    _ => {
+                        println!("-- An error the server didn't account for --");
+                        println!("{:?}", pg_error);
+                        SignupError::UnknownQueryError
+                    }
+                }
+            }
+            _ => {
+                println!("Something else happened");
+                SignupError::UnknownDatabaseError
+            }
+        }
+    }
+}
+
+impl std::fmt::Display for SignupError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SignupError::NonUniqueIdError => {
+                write!(f, "Duplicate email contained a duplicate key.")
+            }
+            SignupError::UnknownQueryError => {
+                write!(f, "Database query contained an unspecified error.")
+            }
+            SignupError::UnknownDatabaseError => write!(f, "Database error, not query related."),
+        }
     }
 }
