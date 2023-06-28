@@ -1,59 +1,5 @@
 {
   "db": "PostgreSQL",
-  "20fb227af79d7cd7994b09c37cdcba4ad02fda28fe5537984e772e039c1504ce": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int8"
-        },
-        {
-          "name": "username",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "first_name",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
-          "name": "email",
-          "ordinal": 4,
-          "type_info": "Varchar"
-        },
-        {
-          "name": "password",
-          "ordinal": 5,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Left": [
-          "Int8",
-          "Text",
-          "Text",
-          "Text",
-          "Text"
-        ]
-      }
-    },
-    "query": "\n            UPDATE fluke_user SET username=($2), first_name=($3), last_name=($4), password=($5)\n            WHERE id=$1\n            RETURNING *\n        "
-  },
   "2f1d1e222c52009e2dd4238b3cd44c489364fe7bf69b466f6b26e03db031eb39": {
     "describe": {
       "columns": [
@@ -63,33 +9,27 @@
           "type_info": "Int8"
         },
         {
-          "name": "username",
+          "name": "first_name",
           "ordinal": 1,
           "type_info": "Text"
         },
         {
-          "name": "first_name",
+          "name": "last_name",
           "ordinal": 2,
           "type_info": "Text"
         },
         {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
           "name": "email",
-          "ordinal": 4,
+          "ordinal": 3,
           "type_info": "Varchar"
         },
         {
           "name": "password",
-          "ordinal": 5,
+          "ordinal": 4,
           "type_info": "Text"
         }
       ],
       "nullable": [
-        false,
         false,
         false,
         false,
@@ -103,6 +43,53 @@
       }
     },
     "query": "SELECT * FROM fluke_user WHERE id = $1"
+  },
+  "59e7f6859977de398fc5c677f71104c7042d02ad5aa53e4e6aadfde463081237": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int8"
+        },
+        {
+          "name": "first_name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "last_name",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "email",
+          "ordinal": 3,
+          "type_info": "Varchar"
+        },
+        {
+          "name": "password",
+          "ordinal": 4,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int8",
+          "Text",
+          "Text",
+          "Text"
+        ]
+      }
+    },
+    "query": "\n            UPDATE fluke_user SET first_name=($2), last_name=($3), password=($4)\n            WHERE id=$1\n            RETURNING *\n        "
   },
   "7ec7e27a426675cfa87e1a3c0772af5346de9f0d0b1a918860b5bf359f0c3f65": {
     "describe": {
@@ -145,33 +132,27 @@
           "type_info": "Int8"
         },
         {
-          "name": "username",
+          "name": "first_name",
           "ordinal": 1,
           "type_info": "Text"
         },
         {
-          "name": "first_name",
+          "name": "last_name",
           "ordinal": 2,
           "type_info": "Text"
         },
         {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
           "name": "email",
-          "ordinal": 4,
+          "ordinal": 3,
           "type_info": "Varchar"
         },
         {
           "name": "password",
-          "ordinal": 5,
+          "ordinal": 4,
           "type_info": "Text"
         }
       ],
       "nullable": [
-        false,
         false,
         false,
         false,
@@ -226,33 +207,27 @@
           "type_info": "Int8"
         },
         {
-          "name": "username",
+          "name": "first_name",
           "ordinal": 1,
           "type_info": "Text"
         },
         {
-          "name": "first_name",
+          "name": "last_name",
           "ordinal": 2,
           "type_info": "Text"
         },
         {
-          "name": "last_name",
-          "ordinal": 3,
-          "type_info": "Text"
-        },
-        {
           "name": "email",
-          "ordinal": 4,
+          "ordinal": 3,
           "type_info": "Varchar"
         },
         {
           "name": "password",
-          "ordinal": 5,
+          "ordinal": 4,
           "type_info": "Text"
         }
       ],
       "nullable": [
-        false,
         false,
         false,
         false,
