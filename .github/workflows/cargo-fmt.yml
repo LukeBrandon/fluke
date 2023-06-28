@@ -21,4 +21,4 @@ jobs:
         override: true
 
     - name: backend build
-      run: cd backend-axum && cargo install && cargo sqlx prepare && cargo build
+      run: cd backend-axum && cargo install --path . && cargo sqlx prepare && cargo build
