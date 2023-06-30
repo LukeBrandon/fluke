@@ -60,7 +60,7 @@ async fn main() {
         .route("/users", get(controllers::user::list_users))
         .route("/users", post(controllers::user::new_user))
         .route("/users/signup", post(controllers::user::signup_user))
-        .route("/users/login", post(controllers::user::login_user))
+        .route("/users/login", get(controllers::user::login_user))
         .route("/users/:id", get(controllers::user::get_user))
         .route("/users/:id", put(controllers::user::update_user))
         .route("/users/:id", delete(controllers::user::delete_user))

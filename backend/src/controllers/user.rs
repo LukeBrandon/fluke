@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Json, Path},
+    extract::{Json, Path, Query},
     http::StatusCode,
     Extension,
 };
@@ -26,7 +26,7 @@ pub async fn list_users(
 
 pub async fn login_user(
     Extension(pool): Extension<PgPool>,
-    Json(user): Json<LoginUserSchema>,
+    Query(params): Query<LoginUserSchema>,
 ) -> Result<Json<UserLoginResponse>, CustomError> {
     let result = sqlx::query_as!(
         UserModel,
@@ -34,8 +34,8 @@ pub async fn login_user(
         SELECT * FROM fluke_user
         WHERE email = $1 AND password = $2
         "#,
-        user.email.to_lowercase(),
-        user.password
+        params.email.to_lowercase(),
+        params.password
     )
     .fetch_optional(&pool)
     .await
