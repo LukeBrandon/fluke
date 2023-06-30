@@ -1,84 +1,107 @@
-#[macro_use]
-extern crate rocket;
-use dotenvy::dotenv;
-use rocket::fs::NamedFile;
-use rocket::{fairing, http, Build, Request, Response, Rocket};
-use rocket_db_pools::{sqlx, Database};
-use std::path::Path;
-mod messages;
-mod users;
+use axum::{
+    async_trait,
+    extract::{FromRef, FromRequestParts},
+    http::{request::Parts, StatusCode},
+    routing::{delete, get, post, put},
+    Router,
+};
+use tower::ServiceBuilder;
 
-pub struct CORS;
-#[rocket::async_trait]
-impl fairing::Fairing for CORS {
-    fn info(&self) -> fairing::Info {
-        fairing::Info {
-            name: "Add CORS headers to responses",
-            kind: fairing::Kind::Response,
-        }
-    }
+use sqlx::postgres::{PgPool, PgPoolOptions};
+use std::{net::SocketAddr, time::Duration};
+use tower_http::{add_extension::AddExtensionLayer, cors::CorsLayer, trace::TraceLayer};
+use tracing_subscriber::EnvFilter;
 
-    async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Origin",
-            request.headers().get_one("Origin").unwrap_or("*"),
-        ));
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Methods",
-            "POST, GET, PATCH, OPTIONS",
-        ));
-        response.set_header(http::Header::new("Access-Control-Allow-Headers", "*"));
-        response.set_header(http::Header::new(
-            "Access-Control-Allow-Credentials",
-            "true",
-        ));
-    }
-}
+mod configuration;
+mod controllers;
+mod errors;
+mod models;
 
-#[derive(Database)]
-#[database("fluke")]
-pub struct FlukeDb(sqlx::PgPool);
+#[tokio::main]
+async fn main() {
+    let config = configuration::load_config();
+    let port = config.port.0;
 
-#[options("/<_..>")]
-fn all_options() {
-    // Intentionally empty
-}
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .pretty()
+        .init();
 
-#[catch(404)]
-async fn not_found(_req: &Request<'_>) -> Option<NamedFile> {
-    NamedFile::open(Path::new("static/").join("404.html"))
+    let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
+        .max_connections(5)
+        .acquire_timeout(Duration::from_secs(3))
+        .connect(&config.database_url)
         .await
-        .ok()
+        .expect("Could not connect to database");
+
+    // Run migrations
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("Error running migrations");
+
+    // create the application state
+    let middleware_stack = ServiceBuilder::new()
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::very_permissive()) // !! todo: change this bad
+        .layer(AddExtensionLayer::new(pool))
+        .into_inner();
+
+    // build our application with some routes
+    let app = Router::new()
+        .route("/messages", get(controllers::message::list_messages))
+        .route("/messages", post(controllers::message::create_message))
+        .route("/messages/:id", put(controllers::message::update_message))
+        .route("/messages/:id", get(controllers::message::get_message))
+        .route(
+            "/messages/:id",
+            delete(controllers::message::delete_message),
+        )
+        .route("/users", get(controllers::user::list_users))
+        .route("/users", post(controllers::user::new_user))
+        .route("/users/signup", post(controllers::user::signup_user))
+        .route("/users/login", post(controllers::user::login_user))
+        .route("/users/:id", get(controllers::user::get_user))
+        .route("/users/:id", put(controllers::user::update_user))
+        .route("/users/:id", delete(controllers::user::delete_user))
+        .layer(middleware_stack);
+
+    // run it with hyper
+    let addr = SocketAddr::from(([127, 0, 0, 1], port));
+    tracing::info!("Listening on {}", addr);
+
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }
 
-async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
-    match FlukeDb::fetch(&rocket) {
-        Some(db) => match sqlx::migrate!("./migrations").run(&**db).await {
-            Ok(_) => Ok(rocket),
-            Err(e) => {
-                error!("Failed to initialize SQLx database: {}", e);
-                Err(rocket)
-            }
-        },
-        None => Err(rocket),
+// we can also write a custom extractor that grabs a connection from the pool
+// which setup is appropriate depends on your application
+struct DatabaseConnection(sqlx::pool::PoolConnection<sqlx::Postgres>);
+
+#[async_trait]
+impl<S> FromRequestParts<S> for DatabaseConnection
+where
+    PgPool: FromRef<S>,
+    S: Send + Sync,
+{
+    type Rejection = (StatusCode, String);
+
+    async fn from_request_parts(_parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let pool = PgPool::from_ref(state);
+
+        let conn = pool.acquire().await.map_err(internal_error)?;
+
+        Ok(Self(conn))
     }
 }
 
-#[launch]
-fn rocket() -> _ {
-    dotenv()
-        .ok()
-        .expect("Could not load environment variables from .env");
-
-    rocket::build()
-        .attach(FlukeDb::init())
-        .attach(fairing::AdHoc::try_on_ignite(
-            "SQLx Migrations",
-            run_migrations,
-        ))
-        .register("/", catchers![not_found])
-        .mount("/", routes![all_options])
-        .attach(messages::messages_stage())
-        .attach(users::users_stage())
-        .attach(CORS)
+/// Utility function for mapping any error into a `500 Internal Server Error`
+/// response.
+fn internal_error<E>(err: E) -> (StatusCode, String)
+where
+    E: std::error::Error,
+{
+    (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }

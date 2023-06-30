@@ -2,18 +2,7 @@ use std::fmt;
 
 use axum::{http::StatusCode, Json, response::IntoResponse};
 use serde_json::json;
-use thiserror::Error;
 
-// #[derive(Debug, Error)]
-// pub enum FlukeError{
-//     #[error(transparent)]
-//     SqlxError(#[from] sqlx::Error),
-//     #[error(transparent)]
-//     BcryptError(#[from] bcrypt::BcryptError),
-//     #[error(transparent)]
-//     JwtError(#[from] jsonwebtoken::errors::Error)
-
-// }
 
 pub enum CustomError {
     BadRequest,
@@ -36,7 +25,7 @@ impl IntoResponse for CustomError {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
 pub enum SignupError {
     NonUniqueIdError,
     UnknownQueryError,
