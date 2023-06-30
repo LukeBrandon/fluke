@@ -8,7 +8,9 @@ use sqlx::PgPool;
 
 use crate::{
     errors::{CustomError, SignupError},
-    models::user::{CreateUserSchema, UpdateUserSchema, UserModel},
+    models::user::{
+        CreateUserSchema, LoginUserSchema, UpdateUserSchema, UserLoginResponse, UserModel,
+    },
 };
 
 pub async fn list_users(
@@ -20,6 +22,46 @@ pub async fn list_users(
         .map_err(|_| CustomError::InternalServerError)?;
 
     Ok(Json(list_of_users))
+}
+
+pub async fn login_user(
+    Extension(pool): Extension<PgPool>,
+    Json(user): Json<LoginUserSchema>,
+) -> Result<Json<UserLoginResponse>, CustomError> {
+    let result = sqlx::query_as!(
+        UserModel,
+        r#"
+        SELECT * FROM fluke_user
+        WHERE email = $1 AND password = $2
+        "#,
+        user.email.to_lowercase(),
+        user.password
+    )
+    .fetch_optional(&pool)
+    .await
+    .map_err(|_| CustomError::UserNotFound)?;
+    match result {
+        Some(user_model) => {
+            let response = UserLoginResponse {
+                status: "logged in".to_string(),
+                user_id: user_model.id,
+            };
+            Ok(Json(response))
+        }
+        None => Err(CustomError::UserNotFound),
+    }
+}
+
+pub async fn get_user(
+    Path(id): Path<i64>,
+    Extension(pool): Extension<PgPool>,
+) -> Result<Json<UserModel>, CustomError> {
+    let user: UserModel = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
+        .fetch_one(&pool)
+        .await
+        .map_err(|_| CustomError::UserNotFound)?;
+
+    Ok(Json(user))
 }
 
 pub async fn signup_user(
@@ -37,18 +79,6 @@ pub async fn signup_user(
             Err((status, e.to_string()))
         }
     }
-}
-
-pub async fn get_user(
-    Path(id): Path<i64>,
-    Extension(pool): Extension<PgPool>,
-) -> Result<Json<UserModel>, CustomError> {
-    let user: UserModel = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
-        .fetch_one(&pool)
-        .await
-        .map_err(|_| CustomError::UserNotFound)?;
-
-    Ok(Json(user))
 }
 
 pub async fn update_user(

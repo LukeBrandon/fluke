@@ -10,6 +10,12 @@ pub struct CreateUserSchema {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UserLoginResponse {
+    pub status: String,
+    pub user_id: i64,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct UpdateUserSchema {
     pub first_name: String,
     pub last_name: String,
@@ -25,3 +31,10 @@ pub struct UserModel {
     pub email: String,
     pub password: String,
 }
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct LoginUserSchema {
+    pub email: String,
+    pub password: String,
+}
+

@@ -3,21 +3,39 @@ use axum::{
     extract::{FromRef, FromRequestParts},
     http::{request::Parts, StatusCode},
     routing::{delete, get, post, put},
-    Extension, Router,
+    Router,
+};
+use tower::ServiceBuilder;
+
+use tower_http::{
+    cors::CorsLayer,
+    trace::TraceLayer,
+    add_extension::AddExtensionLayer,
 };
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::{net::SocketAddr, time::Duration};
-// use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::EnvFilter;
 
 mod configuration;
 mod controllers;
 mod errors;
 mod models;
+mod middleware;
 
 #[tokio::main]
 async fn main() {
+
+    // RUST_LOG=backend_axum=info
+    // either in .env or before cargo run
+    dotenvy::dotenv().ok();
+
     let config = configuration::load_config();
     let port = config.port.0;
+
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .pretty()
+        .init();
 
     let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
         .max_connections(5)
@@ -32,6 +50,13 @@ async fn main() {
         .await
         .expect("Error running migrations");
 
+    // create the application state
+    let middleware_stack = ServiceBuilder::new()
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::very_permissive()) // !! todo: change this bad
+        .layer(AddExtensionLayer::new(pool))
+        .into_inner();
+
     // build our application with some routes
     let app = Router::new()
         .route("/messages", get(controllers::message::list_messages))
@@ -45,13 +70,15 @@ async fn main() {
         .route("/users", get(controllers::user::list_users))
         .route("/users", post(controllers::user::new_user))
         .route("/users/signup", post(controllers::user::signup_user))
+        .route("/users/login", post(controllers::user::login_user))
         .route("/users/:id", get(controllers::user::get_user))
         .route("/users/:id", put(controllers::user::update_user))
         .route("/users/:id", delete(controllers::user::delete_user))
-        .layer(Extension(pool));
+        .layer(middleware_stack);
 
     // run it with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
+    tracing::info!("Listening on {}", addr);
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
