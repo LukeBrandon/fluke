@@ -7,28 +7,18 @@ use axum::{
 };
 use tower::ServiceBuilder;
 
-use tower_http::{
-    cors::CorsLayer,
-    trace::TraceLayer,
-    add_extension::AddExtensionLayer,
-};
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::{net::SocketAddr, time::Duration};
+use tower_http::{add_extension::AddExtensionLayer, cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::EnvFilter;
 
 mod configuration;
 mod controllers;
 mod errors;
 mod models;
-mod middleware;
 
 #[tokio::main]
 async fn main() {
-
-    // RUST_LOG=backend_axum=info
-    // either in .env or before cargo run
-    dotenvy::dotenv().ok();
-
     let config = configuration::load_config();
     let port = config.port.0;
 
