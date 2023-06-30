@@ -1,3 +1,4 @@
+-- Add down migration script here
 ALTER TABLE fluke_user 
 ADD COLUMN username TEXT;
 

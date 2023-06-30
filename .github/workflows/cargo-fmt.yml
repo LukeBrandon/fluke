@@ -1,12 +1,12 @@
 
-name: Cargo fmt
+name: Cargo build
 
 on:
   pull_request:
     branches: [ master ]
 
 jobs:
-  format:
+  build:
 
     runs-on: ubuntu-latest
 
@@ -20,11 +20,5 @@ jobs:
         toolchain: stable
         override: true
 
-    - name: Check Backend Formatting
-      run: cd backend && cargo fmt -- --check
-
-    - name: Check Frontend Formatting
-      run: cd frontend && cargo fmt -- --check
-
-    - name: Check Backend Formatting
-      run: cd backend-axum && cargo fmt -- --check
+    - name: backend build
+      run: cd backend-axum && cargo install --path . && cargo sqlx prepare && cargo build
