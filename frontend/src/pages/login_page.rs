@@ -5,7 +5,7 @@ use std::rc::Rc;
 use crate::api::user_api::api_login_user;
 use crate::components::{form_input::FormInput, loading_button::LoadingButton};
 use crate::router::{self, Route};
-use crate::store::{set_page_loading, set_user_auth_error, Store, set_auth_user};
+use crate::store::{set_page_loading, set_user_auth_error, Store };
 
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationErrors};

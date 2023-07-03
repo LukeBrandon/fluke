@@ -32,3 +32,15 @@ pub struct ErrorResponse {
     pub status: String,
     pub message: String,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Message {
+    pub id: i64,
+    pub message: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MessageResponse {
+    pub status: String,
+    pub data: Message,
+}

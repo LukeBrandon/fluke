@@ -29,9 +29,9 @@ pub async fn api_register_user(user_data: &str) -> Result<User, String> {
 }
 
 pub async fn api_login_user(credentials: &str) -> Result<UserLoginResponse, String> {
-    let response = match Request::post("http://127.0.0.1:8000/users/login")
+    let response = match Request::get("http://127.0.0.1:8000/users/login")
         .header("Content-Type", "application/json")
-        .body(credentials.clone()) // clone credentials so we can log it
+        // .body(credentials.clone()) // clone credentials so we can log it
         .send()
         .await
     {

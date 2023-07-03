@@ -40,6 +40,9 @@ pub fn header_component() -> Html {
                 <li>
                   <Link<Route> to={Route::LoginPage} classes="">{"Login"}</Link<Route>>
                 </li>
+                <li>
+                  <Link<Route> to={Route::MessagesPage} classes="">{"Login"}</Link<Route>>
+                </li>
               </>
             }
           </ul>
