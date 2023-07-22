@@ -1,5 +1,5 @@
 
-name: Cargo build
+name: Cargo build and test
 
 on:
   pull_request:
@@ -25,3 +25,6 @@ jobs:
 
     - name: backend build
       run: cargo build --verbose
+
+    - name: backend test
+      run: cargo test --verbose
