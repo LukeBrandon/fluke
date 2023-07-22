@@ -16,7 +16,7 @@ use crate::{
 pub async fn list_users(
     Extension(pool): Extension<PgPool>,
 ) -> Result<Json<Vec<UserModel>>, CustomError> {
-    let list_of_users: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FRum fluke_user")
+    let list_of_users: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user")
         .fetch_all(&pool)
         .await
         .map_err(|_| CustomError::InternalServerError)?;
