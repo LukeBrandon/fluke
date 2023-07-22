@@ -24,7 +24,9 @@ jobs:
         override: true
 
     - name: backend build
+      working-directory: ./backend
       run: cargo build --verbose
 
     - name: backend test
+      working-directory: ./backend
       run: cargo test --verbose
