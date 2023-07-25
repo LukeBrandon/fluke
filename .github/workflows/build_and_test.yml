@@ -1,9 +1,12 @@
 
-name: Cargo build
+name: Cargo build and test
 
 on:
   pull_request:
     branches: [ master ]
+
+env:
+    SQLX_OFFLINE: true
 
 jobs:
   build:
@@ -21,4 +24,9 @@ jobs:
         override: true
 
     - name: backend build
-      run: cd backend-axum && cargo install --path . && cargo sqlx prepare && cargo build
+      working-directory: ./backend
+      run: cargo build --verbose
+
+    - name: backend test
+      working-directory: ./backend
+      run: cargo test --verbose
