@@ -39,7 +39,7 @@ pub async fn login_user(
     )
     .fetch_optional(&pool)
     .await
-    .map_err(|_| CustomError::UserNotFound)?;
+    .map_err(|_| CustomError::UserNotFound(params.email.to_string()))?;
     match result {
         Some(user_model) => {
             let response = UserLoginResponse {
@@ -48,7 +48,7 @@ pub async fn login_user(
             };
             Ok(Json(response))
         }
-        None => Err(CustomError::UserNotFound),
+        None => Err(CustomError::UserNotFound(params.email.to_string())),
     }
 }
 
@@ -59,7 +59,7 @@ pub async fn get_user(
     let user: UserModel = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
         .fetch_one(&pool)
         .await
-        .map_err(|_| CustomError::UserNotFound)?;
+        .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
 
     Ok(Json(user))
 }
@@ -124,7 +124,7 @@ pub async fn delete_user(
     sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
         .fetch_one(&pool)
         .await
-        .map_err(|_| CustomError::UserNotFound)?;
+        .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
 
     let sql = "DELETE FROM fluke_user WHERE id = $1";
 
@@ -132,7 +132,7 @@ pub async fn delete_user(
         .bind(id)
         .execute(&pool)
         .await
-        .map_err(|_| CustomError::UserNotFound)?;
+        .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
 
     Ok((StatusCode::OK, Json(json!({"message": "User deleted"}))))
 }

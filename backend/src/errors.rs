@@ -1,25 +1,28 @@
 use std::fmt;
 
-use axum::{http::StatusCode, Json, response::IntoResponse};
+use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
-
 
 pub enum CustomError {
     BadRequest,
     MessageNotFound,
-    UserNotFound,
+    UserNotFound(String),
     InternalServerError,
 }
 
 impl IntoResponse for CustomError {
     fn into_response(self) -> axum::response::Response {
         let (status, error_message) = match self {
-            Self::InternalServerError => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
+            Self::InternalServerError => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal Server Error".to_string(),
+            ),
+            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request".to_string()),
+            Self::MessageNotFound => (StatusCode::NOT_FOUND, "Message Not Found".to_string()),
+            Self::UserNotFound(user_param) => {
+                let msg = format!("User Not Found: {}", user_param);
+                (StatusCode::NOT_FOUND, msg)
             }
-            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request"),
-            Self::MessageNotFound => (StatusCode::NOT_FOUND, "Message Not Found"),
-            Self::UserNotFound => (StatusCode::NOT_FOUND, "User Not Found"),
         };
         (status, Json(json!({ "error": error_message }))).into_response()
     }
