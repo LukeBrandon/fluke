@@ -69,7 +69,7 @@ async fn main() {
         .route("/channels/:id", get(controllers::channel::get_channel))
         .route("/channels/:id", put(controllers::channel::update_channel))
         .route(
-            "/channel/:id",
+            "/channels/:id",
             delete(controllers::channel::delete_channel),
         )
         .layer(middleware_stack);
