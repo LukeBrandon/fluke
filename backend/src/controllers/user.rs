@@ -136,12 +136,6 @@ pub async fn delete_user(
         .await
         .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
 
-    let _ = sqlx::query!(
-        "UPDATE message SET user_id = NULL WHERE user_id = $1",
-        id
-    )
-    .execute(&pool)
-    .await;
 
     Ok((StatusCode::OK, Json(json!({"message": "User deleted", "user_id": user_id_str}))))
 }
