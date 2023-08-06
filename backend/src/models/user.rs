@@ -31,7 +31,7 @@ pub struct UserModel {
     pub last_name: String,
     pub email: String,
     pub password: String,
-    pub deleted: Option<bool>,
+    pub deleted: bool,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
