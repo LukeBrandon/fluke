@@ -121,23 +121,12 @@ pub async fn delete_user(
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
 
-    let user_model = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
-        .fetch_one(&pool)
-        .await
-        .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
+    let _ = sqlx::query_as!(UserModel,"UPDATE fluke_user SET deleted=true WHERE id=($1)", id)
+    .fetch_one(&pool)
+    .await
+    .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
 
-    let user_id_str = user_model.id.to_string();
-
-    let sql = "DELETE FROM fluke_user WHERE id = $1";
-
-    let _ = sqlx::query(sql)
-        .bind(id)
-        .execute(&pool)
-        .await
-        .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
-
-
-    Ok((StatusCode::OK, Json(json!({"message": "User deleted", "user_id": user_id_str}))))
+    Ok((StatusCode::OK, Json(json!({"message": "User soft-deleted", "user_id": id.to_string()}))))
 }
 
 async fn create_user(user: CreateUserSchema, pool: PgPool) -> Result<UserModel, SignupError> {
@@ -152,10 +141,10 @@ async fn create_user(user: CreateUserSchema, pool: PgPool) -> Result<UserModel, 
         user.last_name,
         user.email.to_lowercase(),
         user.password
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(SignupError::from)?;
+        )
+        .fetch_one(&pool)
+        .await
+        .map_err(SignupError::from)?;
 
     Ok(user_model)
 }

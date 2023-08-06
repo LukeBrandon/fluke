@@ -65,7 +65,7 @@ pub async fn update_message(
 ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
     let updated = sqlx::query_as!(
         MessageModel,
-        "UPDATE message SET message=$1 WHERE id=$2 RETURNING *",
+        "UPDATE message SET message=$1 WHERE id=$2 RETURNING id, message, created_at, user_id, channel_id",
         &message.message,
         id
     )
@@ -89,8 +89,8 @@ pub async fn create_message(
 
     let created = sqlx::query_as!(
         MessageModel,
-        "INSERT INTO message (message, user_id, channel_id) VALUES ($1, $2, $3) RETURNING *",
-        &message.message, &message.user_id, &message.channel_id
+        "INSERT INTO message (message)  VALUES ($1) RETURNING *",
+        &message.message
     )
     .fetch_one(&pool)
     .await
