@@ -120,11 +120,13 @@ pub async fn delete_user(
     Path(id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
-    // If user exists 404
-    sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
+
+    let user_model = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", id)
         .fetch_one(&pool)
         .await
         .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
+
+    let user_id_str = user_model.id.to_string();
 
     let sql = "DELETE FROM fluke_user WHERE id = $1";
 
@@ -134,7 +136,14 @@ pub async fn delete_user(
         .await
         .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
 
-    Ok((StatusCode::OK, Json(json!({"message": "User deleted"}))))
+    let _ = sqlx::query!(
+        "UPDATE message SET user_id = NULL WHERE user_id = $1",
+        id
+    )
+    .execute(&pool)
+    .await;
+
+    Ok((StatusCode::OK, Json(json!({"message": "User deleted", "user_id": user_id_str}))))
 }
 
 async fn create_user(user: CreateUserSchema, pool: PgPool) -> Result<UserModel, SignupError> {

@@ -6,6 +6,7 @@ use serde_json::json;
 pub enum CustomError {
     BadRequest,
     MessageNotFound,
+    ChannelNotFound,
     UserNotFound(String),
     InternalServerError,
 }
@@ -19,6 +20,7 @@ impl IntoResponse for CustomError {
             ),
             Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request".to_string()),
             Self::MessageNotFound => (StatusCode::NOT_FOUND, "Message Not Found".to_string()),
+            Self::ChannelNotFound => (StatusCode::NOT_FOUND, "Channel Not Found".to_string()),
             Self::UserNotFound(user_param) => {
                 let msg = format!("User Not Found: {}", user_param);
                 (StatusCode::NOT_FOUND, msg)
