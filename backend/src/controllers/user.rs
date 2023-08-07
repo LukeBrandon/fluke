@@ -126,7 +126,7 @@ pub async fn delete_user(
     .await
     .map_err(|_| CustomError::UserNotFound(id.to_string()))?;
 
-    Ok((StatusCode::OK, Json(json!({"message": "User soft-deleted", "user_id": id.to_string()}))))
+    Ok((StatusCode::OK, Json(json!({"message": "User deleted", "user_id": id.to_string()}))))
 }
 
 async fn create_user(user: CreateUserSchema, pool: PgPool) -> Result<UserModel, SignupError> {
