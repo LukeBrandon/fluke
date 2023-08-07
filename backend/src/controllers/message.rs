@@ -89,8 +89,8 @@ pub async fn create_message(
 
     let created = sqlx::query_as!(
         MessageModel,
-        "INSERT INTO message (message)  VALUES ($1) RETURNING *",
-        &message.message
+        "INSERT INTO message (message, user_id, channel_id)  VALUES ($1. $2, $3) RETURNING *",
+        &message.message, &message.user_id, &message.channel_id
     )
     .fetch_one(&pool)
     .await
