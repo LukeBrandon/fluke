@@ -10,6 +10,7 @@
   - `DATABASE_URL=postgres://<db_user>:<db_password>@<db_host>:<db_port>/<db_name>`
     - This needs to be set for `sqlx` to know where to do migrations and also for `sqlx::query!()` and `sqlx::query_as!()` macros to function correctly
       - These macros spin up test DB's and run sql against the DB to validate the SQL and give compiler errors on bad SQL
+  - `SQLX_OFFLINE=true` to enable `cargo sqlx prepare` to see migration changes
   - This is loaded in with the help of the [`dotenvy` create](https://docs.rs/dotenvy/0.15.7/dotenvy/)
 
 ### SQLx Migrations

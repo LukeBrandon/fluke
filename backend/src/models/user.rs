@@ -21,6 +21,7 @@ pub struct UpdateUserSchema {
     pub last_name: String,
     pub password: String,
 }
+
 // Likely want to add 'Optional' fields for last name
 // If Optional fields added, change .fetch_* to .fetch_optional(...)
 #[derive(Debug, Clone, Deserialize, Serialize, FromRow)]
@@ -30,6 +31,7 @@ pub struct UserModel {
     pub last_name: String,
     pub email: String,
     pub password: String,
+    pub deleted: bool,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

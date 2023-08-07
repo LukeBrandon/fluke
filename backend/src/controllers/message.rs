@@ -32,7 +32,10 @@ pub async fn get_message(
         .bind(id)
         .fetch_one(&pool)
         .await
-        .map_err(|_| CustomError::MessageNotFound)?;
+        .map_err(|e| {
+            eprintln!("Database error: {}", e);
+            CustomError::MessageNotFound
+        })?;
 
     Ok(Json(message))
 }
@@ -47,7 +50,10 @@ pub async fn delete_message(
         .bind(id)
         .execute(&pool)
         .await
-        .map_err(|_| CustomError::MessageNotFound)?;
+        .map_err(|e| {
+            eprintln!("Database error: {}", e);
+            CustomError::MessageNotFound
+        })?;
 
     Ok((StatusCode::OK, Json(json!({"message": "Message deleted"}))))
 }
@@ -65,7 +71,10 @@ pub async fn update_message(
     )
     .fetch_one(&pool)
     .await
-    .map_err(|_| CustomError::InternalServerError)?;
+    .map_err(|e| {
+        eprintln!("Database error: {}", e);
+        CustomError::InternalServerError
+    })?;
 
     Ok((StatusCode::OK, Json(updated)))
 }
@@ -80,12 +89,15 @@ pub async fn create_message(
 
     let created = sqlx::query_as!(
         MessageModel,
-        "INSERT INTO message (message) VALUES ($1) RETURNING *",
-        &message.message
+        "INSERT INTO message (message, user_id, channel_id)  VALUES ($1, $2, $3) RETURNING *",
+        &message.message, &message.user_id, &message.channel_id
     )
     .fetch_one(&pool)
     .await
-    .map_err(|_| CustomError::InternalServerError)?;
+    .map_err(|e| {
+        eprintln!("Database error: {}", e);
+        CustomError::InternalServerError
+    })?;
 
     Ok((StatusCode::CREATED, Json(created)))
 }

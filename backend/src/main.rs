@@ -64,6 +64,14 @@ async fn main() {
         .route("/users/:id", get(controllers::user::get_user))
         .route("/users/:id", put(controllers::user::update_user))
         .route("/users/:id", delete(controllers::user::delete_user))
+        .route("/channels", get(controllers::channel::list_channels))
+        .route("/channels", post(controllers::channel::create_channel))
+        .route("/channels/:id", get(controllers::channel::get_channel))
+        .route("/channels/:id", put(controllers::channel::update_channel))
+        .route(
+            "/channels/:id",
+            delete(controllers::channel::delete_channel),
+        )
         .layer(middleware_stack);
 
     // run it with hyper
