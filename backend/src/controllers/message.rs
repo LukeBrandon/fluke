@@ -65,7 +65,7 @@ pub async fn update_message(
 ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
     let updated = sqlx::query_as!(
         MessageModel,
-        "UPDATE message SET message=$1 WHERE id=$2 RETURNING id, message, created_at, user_id, channel_id",
+        "UPDATE message SET message=$1 WHERE id=$2 RETURNING *",
         &message.message,
         id
     )
