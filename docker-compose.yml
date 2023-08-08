@@ -1,19 +1,13 @@
 version: '3'
 services:
   local-db:
-    image: postgres:14
+    image: postgres:latest
     env_file: .env
     ports:
       - 5432:5432
   backend:
-    build: ./backend
-    ports:
-      - 8000:8000
+    image: fluke-backend:dev
     depends_on:
       - local-db
-  frontend:
-    build: ./frontend
     ports:
-      - 3000:3000
-    depends_on:
-      - backend
+      - 8000:8000
