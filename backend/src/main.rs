@@ -20,16 +20,9 @@ mod models;
 #[cfg(test)]
 mod tests;
 
-#[tokio::main]
-async fn main() {
+pub async fn init_db() -> sqlx::Pool<sqlx::Postgres> {
+
     let config = configuration::load_config();
-    let port = config.port.0;
-
-    tracing_subscriber::fmt()
-        .with_env_filter(EnvFilter::from_default_env())
-        .pretty()
-        .init();
-
     let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
@@ -37,21 +30,23 @@ async fn main() {
         .await
         .expect("Could not connect to database");
 
-    // Run migrations
     sqlx::migrate!()
         .run(&pool)
         .await
         .expect("Error running migrations");
 
-    // create the application state
+    pool
+}
+
+pub fn init_app(pool: sqlx::Pool<sqlx::Postgres>) -> Router {
+
     let middleware_stack = ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::very_permissive()) // !! todo: change this bad
         .layer(AddExtensionLayer::new(pool))
         .into_inner();
 
-    // build our application with some routes
-    let app = Router::new()
+    Router::new()
         .route("/messages", get(controllers::message::list_messages))
         .route("/messages", post(controllers::message::create_message))
         .route("/messages/:id", put(controllers::message::update_message))
@@ -75,9 +70,23 @@ async fn main() {
             "/channels/:id",
             delete(controllers::channel::delete_channel),
         )
-        .layer(middleware_stack);
+        .layer(middleware_stack)
+}
 
-    // run it with hyper
+
+#[tokio::main]
+async fn main() {
+
+    let config = configuration::load_config();
+    let port = config.port.0;
+
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .pretty()
+        .init();
+    let pool = init_db().await;
+    let app = init_app(pool);
+
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     tracing::info!("Listening on {}", addr);
 
