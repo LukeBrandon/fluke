@@ -1,52 +1,58 @@
-use configuration::{load_config, FlukeConfiguration};
-use controllers;
-use models;
-use errors;
-
-use axum::{
-    async_trait,
-    extract::{FromRef, FromRequestParts},
-    http::{request::Parts, StatusCode},
-    routing::{delete, get, post, put},
-    Router,
-};
-
-use tower::ServiceBuilder;
-
-use sqlx::postgres::{PgPool, PgPoolOptions};
-use std::{net::SocketAddr, time::Duration};
-use axum::http::Request;
-
 #[cfg(test)]
 mod tests {
-    use dotenvy;
+    use crate::init_app;
+    use crate::init_db;
+    use crate::models;
+    use reqwest;
+    use serde_json::json;
+    use std::net::SocketAddr;
+    use tracing_subscriber::EnvFilter;
 
     #[sqlx::test]
-    async fn setup_database() {
-        let config = load_config();
-        let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
-            .max_connections(5)
-            .acquire_timeout(Duration::from_secs(3))
-            .connect(&config.database_url)
+    async fn test_create_user() {
+        tracing_subscriber::fmt()
+            .with_env_filter(EnvFilter::from_default_env())
+            .pretty()
+            .init();
+
+        let port = 8880;
+        println!("Port: {}", port);
+        let pool = init_db().await;
+        let app = init_app(pool.clone());
+        let addr = SocketAddr::from(([127, 0, 0, 1], port));
+
+        let server = axum::Server::bind(&addr).serve(app.into_make_service());
+        tracing::info!("Listening on {}", addr);
+
+        // without this method, tests run forever...and ever
+        // run server concurrently, so it doesn't block
+        // and give the server a little time to start up
+        let server_handle = tokio::spawn(server);
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+        let test_user = json!({
+            "first_name": "Test",
+            "last_name": "User",
+            "email": "test@example.com",
+            "password": "test_password"
+        });
+
+        let client = reqwest::Client::new();
+        let resp = client
+            .post(format!("http://{}{}", addr, "/users"))
+            .json(&test_user)
+            .send()
             .await
-            .expect("Could not connect to database");
-}
+            .expect("Failed to send request");
 
-    #[sqlx::test]
-    async fn test_list_users() {
-        // Setup: Connect to the test database, possibly insert mock data
-        let mut conn = pool.acquire().await?;
+        println!("Response status: {:?}", resp.status());
 
-        // Create a GET request for the list users endpoint
-        let request = Request::builder()
-            .method("GET")
-            .uri("/users")
-            .body(Body::empty())
-            .unwrap();
+        let created_user: models::user::UserModel =
+            resp.json().await.expect("Failed to parse response");
 
-        let response = app.handle(request).await;
-        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(created_user.first_name, "Test");
+        assert_eq!(created_user.last_name, "User");
+
+        drop(server_handle);
     }
 }
-
-

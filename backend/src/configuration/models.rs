@@ -15,9 +15,7 @@ impl From<u16> for FlukePort {
 }
 
 pub struct FlukeConfiguration {
-    /// REQUIRED! There is not default value
     pub database_url: String,
-    /// Default 8000
     pub port: FlukePort,
 }
 
@@ -29,3 +27,4 @@ impl Default for FlukeConfiguration {
         }
     }
 }
+

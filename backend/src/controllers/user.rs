@@ -129,7 +129,7 @@ pub async fn delete_user(
     Ok((StatusCode::OK, Json(json!({"message": "User deleted", "user_id": id.to_string()}))))
 }
 
-async fn create_user(user: CreateUserSchema, pool: PgPool) -> Result<UserModel, SignupError> {
+pub async fn create_user(user: CreateUserSchema, pool: PgPool) -> Result<UserModel, SignupError> {
     let user_model: UserModel = sqlx::query_as!(
         UserModel,
         r#"
