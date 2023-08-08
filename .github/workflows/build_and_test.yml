@@ -27,6 +27,27 @@ jobs:
       working-directory: ./backend
       run: cargo build --verbose
 
-    - name: backend test
-      working-directory: ./backend
-      run: cargo test --verbose
+  docker-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build backend docker image
+      run: |
+        cd backend
+        docker build -t fluke-backend:dev .
+
+    - name: Setup and start services
+      run: docker-compose up -d
+
+    - name: Initialize database
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '30s'
+
+    - name: Docker-based test
+      run: |
+        cd backend
+        docker exec backend cargo test
