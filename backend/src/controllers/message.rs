@@ -11,10 +11,14 @@ use crate::errors::CustomError;
 
 use crate::models::message::{CreateMessageSchema, MessageModel};
 
-pub async fn list_messages(Extension(pool): Extension<PgPool>) -> impl IntoResponse {
-    let sql = "SELECT * FROM message";
+pub async fn list_messages(
+    Path(channel_id): Path<i64>,
+    Extension(pool): Extension<PgPool>
+) -> impl IntoResponse {
+    let sql = "SELECT * FROM message where channel_id = ($1)";
 
     let task: Vec<MessageModel> = sqlx::query_as::<_, MessageModel>(sql)
+        .bind(channel_id)
         .fetch_all(&pool)
         .await
         .unwrap();
@@ -23,63 +27,61 @@ pub async fn list_messages(Extension(pool): Extension<PgPool>) -> impl IntoRespo
 }
 
 pub async fn get_message(
+    Path(channel_id): Path<i64>,
     Path(id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<Json<MessageModel>, CustomError> {
-    let sql = "SELECT * FROM message where id = ($1)";
+    let sql = "SELECT * FROM message where channel_id = ($1) and id = ($2)";
 
     let message: MessageModel = sqlx::query_as::<_, MessageModel>(sql)
+        .bind(channel_id)
         .bind(id)
         .fetch_one(&pool)
         .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::MessageNotFound
-        })?;
+        .map_err(|_| CustomError::MessageNotFound)?;
 
     Ok(Json(message))
 }
 
 pub async fn delete_message(
+    Path(channel_id): Path<i64>,
     Path(id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
-    let sql = "DELETE FROM message WHERE id = ($1)";
+    let sql = "DELETE FROM message WHERE channel_id = ($1) and  id = ($2)";
 
     let _ = sqlx::query(sql)
+        .bind(channel_id)
         .bind(id)
         .execute(&pool)
         .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::MessageNotFound
-        })?;
+        .map_err(|_| CustomError::MessageNotFound)?;
 
     Ok((StatusCode::OK, Json(json!({"message": "Message deleted"}))))
 }
 
 pub async fn update_message(
+    Path(channel_id): Path<i64>,
     Path(id): Path<i64>,
     Extension(pool): Extension<PgPool>,
     Json(message): Json<CreateMessageSchema>,
 ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
     let updated = sqlx::query_as!(
         MessageModel,
-        "UPDATE message SET message=$1 WHERE id=$2 RETURNING *",
+        "UPDATE message SET message=$1 WHERE channel_id=$2 and id=$3 RETURNING *",
         &message.message,
+        channel_id,
         id
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        eprintln!("Database error: {}", e);
-        CustomError::InternalServerError
-    })?;
+    .map_err(|_| CustomError::InternalServerError)?;
 
     Ok((StatusCode::OK, Json(updated)))
 }
 
 pub async fn create_message(
+    Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
     Json(message): Json<CreateMessageSchema>,
 ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
@@ -89,15 +91,13 @@ pub async fn create_message(
 
     let created = sqlx::query_as!(
         MessageModel,
-        "INSERT INTO message (message, user_id, channel_id)  VALUES ($1, $2, $3) RETURNING *",
-        &message.message, &message.user_id, &message.channel_id
+        "INSERT INTO message (channel_id, message) VALUES ($1, $2) RETURNING *",
+        channel_id,
+        &message.message
     )
     .fetch_one(&pool)
     .await
-    .map_err(|e| {
-        eprintln!("Database error: {}", e);
-        CustomError::InternalServerError
-    })?;
+    .map_err(|_| CustomError::InternalServerError)?;
 
     Ok((StatusCode::CREATED, Json(created)))
 }

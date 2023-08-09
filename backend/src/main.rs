@@ -49,14 +49,6 @@ async fn main() {
 
     // build our application with some routes
     let app = Router::new()
-        .route("/messages", get(controllers::message::list_messages))
-        .route("/messages", post(controllers::message::create_message))
-        .route("/messages/:id", put(controllers::message::update_message))
-        .route("/messages/:id", get(controllers::message::get_message))
-        .route(
-            "/messages/:id",
-            delete(controllers::message::delete_message),
-        )
         .route("/users", get(controllers::user::list_users))
         .route("/users", post(controllers::user::new_user))
         .route("/users/signup", post(controllers::user::signup_user))
@@ -71,6 +63,14 @@ async fn main() {
         .route(
             "/channels/:id",
             delete(controllers::channel::delete_channel),
+        )
+        .route("/channels/:channel_id/messages", get(controllers::message::list_messages))
+        .route("/channels/:channel_id/messages", post(controllers::message::create_message))
+        .route("/channels/:channel_id/messages/:id", put(controllers::message::update_message))
+        .route("/channels/:channel_id/messages/:id", get(controllers::message::get_message))
+        .route(
+            "/channels/:channel_id/messages/:id",
+            delete(controllers::message::delete_message),
         )
         .layer(middleware_stack);
 
