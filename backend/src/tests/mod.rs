@@ -1,15 +1,15 @@
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use crate::init_app;
-    use crate::init_db;
     use crate::models;
     use reqwest;
     use serde_json::json;
     use std::net::SocketAddr;
     use tracing_subscriber::EnvFilter;
+    use sqlx::PgPool;
 
     #[sqlx::test]
-    async fn test_create_user() {
+    async fn test_create_user(pool: PgPool) {
         tracing_subscriber::fmt()
             .with_env_filter(EnvFilter::from_default_env())
             .pretty()
@@ -17,7 +17,6 @@ mod tests {
 
         let port = 8880;
         println!("Port: {}", port);
-        let pool = init_db().await;
         let app = init_app(pool.clone());
         let addr = SocketAddr::from(([127, 0, 0, 1], port));
 
