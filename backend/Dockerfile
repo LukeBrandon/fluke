@@ -18,3 +18,4 @@ COPY --from=builder /usr/src/backend/target/release/backend-axum /usr/local/bin/
 
 # Command to run the application
 CMD ["backend-axum"]
+
