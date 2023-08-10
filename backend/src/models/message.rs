@@ -8,6 +8,11 @@ pub struct CreateMessageSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]
+pub struct UpdateMessageSchema {
+    pub message: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRow)]
 pub struct MessageModel {
     pub id: i64,
     pub message: String,
