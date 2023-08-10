@@ -5,7 +5,11 @@ use sqlx::FromRow;
 pub struct CreateMessageSchema {
     pub message: String,
     pub user_id: i64,
-    pub channel_id: i64,
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRow)]
+pub struct UpdateMessageSchema {
+    pub message: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]

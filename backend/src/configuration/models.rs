@@ -1,5 +1,4 @@
 const DEFAULT_PORT: u16 = 8000;
-
 pub struct FlukePort(pub u16);
 
 impl Default for FlukePort {
@@ -15,7 +14,7 @@ impl From<u16> for FlukePort {
 }
 
 pub struct FlukeConfiguration {
-    /// REQUIRED! There is not default value
+    /// REQUIRED! There is not a default value
     pub database_url: String,
     /// Default 8000
     pub port: FlukePort,

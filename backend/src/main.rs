@@ -22,11 +22,13 @@ async fn main() {
     let config = configuration::load_config();
     let port = config.port.0;
 
+    // Initialize our logger
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .pretty()
         .init();
 
+    // Connect to our database
     let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
@@ -34,47 +36,57 @@ async fn main() {
         .await
         .expect("Could not connect to database");
 
-    // Run migrations
     sqlx::migrate!()
         .run(&pool)
         .await
         .expect("Error running migrations");
 
-    // create the application state
+    // Set up middleware
     let middleware_stack = ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::very_permissive()) // !! todo: change this bad
         .layer(AddExtensionLayer::new(pool))
         .into_inner();
 
-    // build our application with some routes
-    let app = Router::new()
-        .route("/messages", get(controllers::message::list_messages))
-        .route("/messages", post(controllers::message::create_message))
-        .route("/messages/:id", put(controllers::message::update_message))
-        .route("/messages/:id", get(controllers::message::get_message))
-        .route(
-            "/messages/:id",
-            delete(controllers::message::delete_message),
-        )
+    // Set up routes
+    let user_router = Router::new()
         .route("/users", get(controllers::user::list_users))
         .route("/users", post(controllers::user::new_user))
         .route("/users/signup", post(controllers::user::signup_user))
         .route("/users/login", get(controllers::user::login_user))
-        .route("/users/:id", get(controllers::user::get_user))
-        .route("/users/:id", put(controllers::user::update_user))
-        .route("/users/:id", delete(controllers::user::delete_user))
-        .route("/channels", get(controllers::channel::list_channels))
-        .route("/channels", post(controllers::channel::create_channel))
-        .route("/channels/:id", get(controllers::channel::get_channel))
-        .route("/channels/:id", put(controllers::channel::update_channel))
-        .route(
-            "/channels/:id",
-            delete(controllers::channel::delete_channel),
-        )
+        .route("/users/:user_id", get(controllers::user::get_user))
+        .route("/users/:user_id", put(controllers::user::update_user))
+        .route("/users/:user_id", delete(controllers::user::delete_user));
+
+    let message_router = Router::new()
+        .route("/",
+               get(controllers::message::list_messages)
+               .post(controllers::message::create_message)
+              )
+        .route("/:message_id",
+               get(controllers::message::get_message)
+               .put(controllers::message::update_message)
+               .delete(controllers::message::delete_message)
+              );
+
+    let channel_router = Router::new()
+        .route("/",
+               get(controllers::channel::list_channels)
+               .post(controllers::channel::create_channel)
+              )
+        .route("/:channel_id",
+               get(controllers::channel::get_channel)
+               .put(controllers::channel::update_channel)
+               .delete(controllers::channel::delete_channel)
+              );
+
+    let app = Router::new()
+        .merge(user_router)
+        .nest("/channels", channel_router)
+        .nest("/channels/:channel_id/messages", message_router)
         .layer(middleware_stack);
 
-    // run it with hyper
+    // Run our service with hyper
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     tracing::info!("Listening on {}", addr);
 
@@ -91,8 +103,8 @@ struct DatabaseConnection(sqlx::pool::PoolConnection<sqlx::Postgres>);
 #[async_trait]
 impl<S> FromRequestParts<S> for DatabaseConnection
 where
-    PgPool: FromRef<S>,
-    S: Send + Sync,
+PgPool: FromRef<S>,
+S: Send + Sync,
 {
     type Rejection = (StatusCode, String);
 
@@ -108,7 +120,7 @@ where
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
 fn internal_error<E>(err: E) -> (StatusCode, String)
-where
+    where
     E: std::error::Error,
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
