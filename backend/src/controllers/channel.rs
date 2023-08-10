@@ -23,13 +23,13 @@ pub async fn list_channels(Extension(pool): Extension<PgPool>) -> impl IntoRespo
 }
 
 pub async fn get_channel(
-    Path(id): Path<i64>,
+    Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<Json<ChannelModel>, CustomError> {
     let sql = "SELECT * FROM channel where id = ($1)";
 
     let channel: ChannelModel = sqlx::query_as::<_, ChannelModel>(sql)
-        .bind(id)
+        .bind(channel_id)
         .fetch_one(&pool)
         .await
         .map_err(|e| {
@@ -41,7 +41,7 @@ pub async fn get_channel(
 }
 
 pub async fn update_channel(
-    Path(id): Path<i64>,
+    Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
     Json(channel): Json<CreateChannelSchema>,
 ) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
@@ -49,7 +49,7 @@ pub async fn update_channel(
         ChannelModel,
         "UPDATE channel SET name=$1 WHERE id=$2 RETURNING *",
         &channel.name,
-        id
+        channel_id
     )
     .fetch_one(&pool)
     .await
@@ -85,13 +85,13 @@ pub async fn create_channel(
 }
 
 pub async fn delete_channel(
-    Path(id): Path<i64>,
+    Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
     let sql = "DELETE FROM channel WHERE id = ($1)";
 
     let _ = sqlx::query(sql)
-        .bind(id)
+        .bind(channel_id)
         .execute(&pool)
         .await
         .map_err(|e| {
