@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM fluke_user WHERE id = $1",
+  "query": "SELECT * FROM fluke_user WHERE id = $1 AND deleted=false",
   "describe": {
     "columns": [
       {
@@ -48,5 +48,5 @@
       false
     ]
   },
-  "hash": "2f1d1e222c52009e2dd4238b3cd44c489364fe7bf69b466f6b26e03db031eb39"
+  "hash": "6eb87bdaf8181187e82b9ad12132231581133c26c73ba955046cb00882fbc786"
 }
