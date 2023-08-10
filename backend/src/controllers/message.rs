@@ -89,7 +89,7 @@ pub async fn create_message(
     Json(message): Json<CreateMessageSchema>,
     ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
     if message.message.is_empty() {
-        return Err(CustomError::InternalServerError);
+        return Err(CustomError::BadRequest);
     }
 
     let created = sqlx::query_as!(
