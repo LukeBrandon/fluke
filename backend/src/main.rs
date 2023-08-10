@@ -53,6 +53,7 @@ async fn main() {
         .route("/messages", post(controllers::message::create_message))
         .route("/messages/:id", put(controllers::message::update_message))
         .route("/messages/:id", get(controllers::message::get_message))
+        .route("/channels/:user_id/channel", get(controllers::channel::load_channel_messages))
         .route(
             "/messages/:id",
             delete(controllers::message::delete_message),

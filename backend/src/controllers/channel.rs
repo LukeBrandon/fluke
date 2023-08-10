@@ -10,6 +10,7 @@ use sqlx::PgPool;
 use crate::errors::CustomError;
 
 use crate::models::channel::{CreateChannelSchema, ChannelModel};
+use crate::models::message::MessageModel;
 
 pub async fn list_channels(Extension(pool): Extension<PgPool>) -> impl IntoResponse {
     let sql = "SELECT * FROM channel";
@@ -100,4 +101,20 @@ pub async fn delete_channel(
         })?;
 
     Ok((StatusCode::OK, Json(json!({"channel": "Channel deleted"}))))
+}
+
+pub async fn load_channel_messages(
+    Extension(pool): Extension<PgPool>,
+    Path(channel_id): Path<i64>
+) -> impl IntoResponse {
+
+    let channel_messages: Vec<MessageModel> = sqlx::query_as!(
+        MessageModel,
+        "SELECT * FROM message WHERE channel_id = $1",
+        &channel_id)
+        .fetch_all(&pool)
+        .await
+        .unwrap();
+
+    (StatusCode::OK, Json(channel_messages))
 }
