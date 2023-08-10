@@ -28,14 +28,14 @@ pub async fn list_messages(
 
 pub async fn get_message(
     Path(channel_id): Path<i64>,
-    Path(id): Path<i64>,
+    Path(message_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<Json<MessageModel>, CustomError> {
     let sql = "SELECT * FROM message where channel_id = ($1) and id = ($2)";
 
     let message: MessageModel = sqlx::query_as::<_, MessageModel>(sql)
         .bind(channel_id)
-        .bind(id)
+        .bind(message_id)
         .fetch_one(&pool)
         .await
         .map_err(|_| CustomError::MessageNotFound)?;
@@ -45,14 +45,14 @@ pub async fn get_message(
 
 pub async fn delete_message(
     Path(channel_id): Path<i64>,
-    Path(id): Path<i64>,
+    Path(message_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
     let sql = "DELETE FROM message WHERE channel_id = ($1) and  id = ($2)";
 
     let _ = sqlx::query(sql)
         .bind(channel_id)
-        .bind(id)
+        .bind(message_id)
         .execute(&pool)
         .await
         .map_err(|_| CustomError::MessageNotFound)?;
@@ -62,7 +62,7 @@ pub async fn delete_message(
 
 pub async fn update_message(
     Path(channel_id): Path<i64>,
-    Path(id): Path<i64>,
+    Path(message_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
     Json(message): Json<CreateMessageSchema>,
 ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
@@ -71,7 +71,7 @@ pub async fn update_message(
         "UPDATE message SET message=$1 WHERE channel_id=$2 and id=$3 RETURNING *",
         &message.message,
         channel_id,
-        id
+        message_id
     )
     .fetch_one(&pool)
     .await

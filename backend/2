@@ -57,31 +57,29 @@ async fn main() {
         .route("/users/:id", delete(controllers::user::delete_user));
 
     let channel_router = Router::new()
-        .route("/channels", 
-            get(controllers::channel::list_channels)
-            .post(controllers::channel::create_channel)
-        )
-        .route("/channels/:id", 
+        .route("/channels", get(controllers::channel::list_channels))
+        .route("/channels", post(controllers::channel::create_channel))
+        .route("/channels/:id/", 
             get(controllers::channel::get_channel)
             .put(controllers::channel::update_channel)
             .delete(controllers::channel::delete_channel)
-        );
+        )
 
     let message_router = Router::new()
         .route("/channels/:channel_id/messages", get(controllers::message::list_messages).post(controllers::message::create_message))
         //.route("/channels/:channel_id/messages", )
-        .route("/channels/:channel_id/messages/:message_id", put(controllers::message::update_message))
-        .route("/channels/:channel_id/messages/:message_id", get(controllers::message::get_message))
+        .route("/channels/:channel_id/messages/:id", put(controllers::message::update_message))
+        .route("/channels/:channel_id/messages/:id", get(controllers::message::get_message))
         .route(
-            "/channels/:channel_id/messages/:message_id",
+            "/channels/:channel_id/messages/:id",
             delete(controllers::message::delete_message)
         );
 
     // build our application with some routes
     let app = Router::new()
         .merge(user_router)
-        .merge(message_router)
         .merge(channel_router)
+        .merge(message_router)
         .layer(middleware_stack);
 
     // run it with hyper
