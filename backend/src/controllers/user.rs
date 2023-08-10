@@ -16,7 +16,7 @@ use crate::{
 pub async fn list_users(
     Extension(pool): Extension<PgPool>,
 ) -> Result<Json<Vec<UserModel>>, CustomError> {
-    let list_of_users: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user")
+    let list_of_users: Vec<UserModel> = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE deleted=false")
         .fetch_all(&pool)
         .await
         .map_err(|_| CustomError::InternalServerError)?;
@@ -56,7 +56,7 @@ pub async fn get_user(
     Path(user_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<Json<UserModel>, CustomError> {
-    let user: UserModel = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1", user_id)
+    let user: UserModel = sqlx::query_as!(UserModel, "SELECT * FROM fluke_user WHERE id = $1 AND deleted=false", user_id)
         .fetch_one(&pool)
         .await
         .map_err(|_| CustomError::UserNotFound(user_id.to_string()))?;
@@ -121,10 +121,13 @@ pub async fn delete_user(
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
 
-    let _ = sqlx::query_as!(UserModel,"UPDATE fluke_user SET deleted=true WHERE id=($1)", user_id)
-    .fetch_one(&pool)
-    .await
-    .map_err(|_| CustomError::UserNotFound(user_id.to_string()))?;
+    let _ = sqlx::query_as!(UserModel, "UPDATE fluke_user SET deleted=true WHERE id=($1)", user_id)
+        .fetch_optional(&pool)
+        .await
+        .map_err(|e| {
+            eprintln!("Database error: {}", e);
+            CustomError::InternalServerError
+        })?;
 
     Ok((StatusCode::OK, Json(json!({"message": "User deleted", "user_id": user_id.to_string()}))))
 }
