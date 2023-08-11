@@ -2,6 +2,7 @@ use axum::{
     async_trait,
     extract::{FromRef, FromRequestParts},
     http::{request::Parts, StatusCode},
+    Router,
 };
 use tower::ServiceBuilder;
 
@@ -47,8 +48,11 @@ async fn main() {
         .layer(AddExtensionLayer::new(pool))
         .into_inner();
 
-    // Set up routes
-    let app = routes::setup_routes()
+    // Build our server
+    let app = Router::new()
+        .merge(routes::user_router())
+        .merge(routes::channel_router())
+        .merge(routes::message_router())
         .layer(middleware_stack);
 
     // Run our service with hyper
