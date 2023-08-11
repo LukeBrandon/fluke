@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE fluke_user SET deleted=true WHERE id=($1)",
+  "query": "DELETE FROM channel WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -10,5 +10,5 @@
     },
     "nullable": []
   },
-  "hash": "ef1ef1d0615404cd164892548c210bc461603468fa2aaf3ee6d15f02f3b7b593"
+  "hash": "23b09a9fad7137cd5e946593eb048e780ad0d9b3790cbd57c114639e2a8eab1a"
 }
