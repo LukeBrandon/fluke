@@ -1,110 +1,69 @@
-use axum::extract::Path;
+// controllers/message.rs
+use axum::extract::{Path, Extension, Json};
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::{Extension, Json};
-
-use serde_json::{json, Value};
-
+use axum::response::{IntoResponse, Response};
 use sqlx::PgPool;
 
-use crate::errors::CustomError;
+use crate::{
+    models::message::{CreateMessageSchema, UpdateMessageSchema},
+    models::database::Db,
+};
 
-use crate::models::message::{CreateMessageSchema, UpdateMessageSchema, MessageModel};
-
-pub async fn list_messages(
-    Path(channel_id): Path<i64>,
-    Extension(pool): Extension<PgPool>
-    ) -> impl IntoResponse {
-    let sql = "SELECT * FROM message where channel_id = ($1)";
-
-    let task: Vec<MessageModel> = sqlx::query_as::<_, MessageModel>(sql)
-        .bind(channel_id)
-        .fetch_all(&pool)
-        .await
-        .unwrap();
-
-    (StatusCode::OK, Json(task))
+pub async fn list_messages(Path(channel_id): Path<i64>, Extension(pool): Extension<PgPool>) -> Response {
+    match Db::list_messages(channel_id, &pool).await {
+        Ok(messages) => {
+            let body = Json(messages);
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
-pub async fn get_message(
-    Path((channel_id , message_id)): Path<(i64, i64)>,
-    Extension(pool): Extension<PgPool>,
-    ) -> Result<Json<MessageModel>, CustomError> {
-    let sql = "SELECT * FROM message where channel_id = ($1) and id = ($2)";
-
-    let message: MessageModel = sqlx::query_as::<_, MessageModel>(sql)
-        .bind(channel_id)
-        .bind(message_id)
-        .fetch_one(&pool)
-        .await
-        .map_err(|_| CustomError::MessageNotFound)?;
-
-    Ok(Json(message))
+pub async fn get_message(Path((channel_id, message_id)): Path<(i64, i64)>, Extension(pool): Extension<PgPool>) -> Response {
+    match Db::get_message(channel_id, message_id, &pool).await {
+        Ok(message) => {
+            let body = Json(message);
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
-pub async fn delete_message(
-    Path((channel_id , message_id)): Path<(i64, i64)>,
-    Extension(pool): Extension<PgPool>,
-    ) -> Result<(StatusCode, Json<Value>), CustomError> {
-    let sql = "DELETE FROM message WHERE channel_id = ($1) and  id = ($2)";
-
-    let _ = sqlx::query(sql)
-        .bind(channel_id)
-        .bind(message_id)
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::InternalServerError
-        })?;
-
-    Ok((StatusCode::OK, Json(json!({"message": "Message deleted"}))))
+pub async fn delete_message(Path((channel_id, message_id)): Path<(i64, i64)>, Extension(pool): Extension<PgPool>) -> Response {
+    match Db::delete_message(channel_id, message_id, &pool).await {
+        Ok(deleted) => {
+            let body = Json(deleted);
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
 pub async fn update_message(
-    Path((channel_id , message_id)): Path<(i64, i64)>,
+    Path((channel_id, message_id)): Path<(i64, i64)>,
     Extension(pool): Extension<PgPool>,
-    Json(message): Json<UpdateMessageSchema>,
-    ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
-    let updated = sqlx::query_as!(
-        MessageModel,
-        "UPDATE message SET message=$1 WHERE channel_id=$2 and id=$3 RETURNING *",
-        &message.message,
-        channel_id,
-        message_id
-        )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::InternalServerError
-        })?;
-
-    Ok((StatusCode::OK, Json(updated)))
+    Json(message): Json<UpdateMessageSchema>
+) -> Response {
+    match Db::update_message(channel_id, message_id, &message.message, &pool).await {
+        Ok(updated) => {
+            let body = Json(updated);
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
 pub async fn create_message(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-    Json(message): Json<CreateMessageSchema>,
-    ) -> Result<(StatusCode, Json<MessageModel>), CustomError> {
-    if message.message.is_empty() {
-        return Err(CustomError::BadRequest);
+    Json(message): Json<CreateMessageSchema>
+) -> Response {
+    match Db::create_message(channel_id, &message.message, &message.user_id, &pool).await {
+        Ok(created) => {
+            let body = Json(created);
+            (StatusCode::CREATED, body).into_response()
+        }
+        Err(e) => e.into_response(),
     }
-
-    let created = sqlx::query_as!(
-        MessageModel,
-        "INSERT INTO message (channel_id, message, user_id) VALUES ($1, $2, $3) RETURNING *",
-        channel_id,
-        &message.message,
-        &message.user_id
-        )
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::InternalServerError
-        })?;
-
-    Ok((StatusCode::CREATED, Json(created)))
 }
+

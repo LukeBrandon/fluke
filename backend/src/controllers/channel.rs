@@ -1,103 +1,77 @@
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
+use axum::response::{IntoResponse, Response};
 use axum::{Extension, Json};
-
-use serde_json::{json, Value};
-
 use sqlx::PgPool;
+use serde_json::json;
 
-use crate::errors::CustomError;
+use crate::models::{
+    database::Db,
+    channel::{CreateChannelSchema, UpdateChannelSchema}
+};
 
-use crate::models::channel::{CreateChannelSchema, ChannelModel};
-
-pub async fn list_channels(Extension(pool): Extension<PgPool>) -> impl IntoResponse {
-    let sql = "SELECT * FROM channel";
-
-    let task: Vec<ChannelModel> = sqlx::query_as::<_, ChannelModel>(sql)
-        .fetch_all(&pool)
-        .await
-        .unwrap();
-
-    (StatusCode::OK, Json(task))
+pub async fn list_channels(
+    Extension(pool): Extension<PgPool>
+) -> Response {
+    match Db::list_channels(&pool).await {
+        Ok(channels) => {
+            let body = Json(channels);
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
 pub async fn get_channel(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-) -> Result<Json<ChannelModel>, CustomError> {
-    let sql = "SELECT * FROM channel where id = ($1)";
-
-    let channel: ChannelModel = sqlx::query_as::<_, ChannelModel>(sql)
-        .bind(channel_id)
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::ChannelNotFound
-        })?;
-
-    Ok(Json(channel))
+) -> Response {
+    match Db::get_channel(channel_id, &pool).await {
+        Ok(channel) => {
+            let body = Json(channel);
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
 pub async fn update_channel(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-    Json(channel): Json<CreateChannelSchema>,
-) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
-    let updated = sqlx::query_as!(
-        ChannelModel,
-        "UPDATE channel SET name=$1 WHERE id=$2 RETURNING *",
-        &channel.name,
-        channel_id
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        eprintln!("Database error: {}", e);
-        CustomError::InternalServerError
-    })?;
-
-    Ok((StatusCode::OK, Json(updated)))
+    Json(channel): Json<UpdateChannelSchema>,
+) -> Response {
+    match Db::update_channel(channel_id, &channel.name, &pool).await {
+        Ok(updated) => {
+            let body = Json(updated);
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
 
 pub async fn create_channel(
     Extension(pool): Extension<PgPool>,
     Json(channel): Json<CreateChannelSchema>,
-) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
-    if channel.name.is_empty() {
-        return Err(CustomError::BadRequest);
+) -> Response {
+    match Db::create_channel(&channel.name, &pool).await {
+        Ok(created) => {
+            let body = Json(created);
+            (StatusCode::CREATED, body).into_response()
+        }
+        Err(e) => e.into_response(),
     }
-
-    let created = sqlx::query_as!(
-        ChannelModel,
-        "INSERT INTO channel (name) VALUES ($1) RETURNING *",
-        &channel.name
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        eprintln!("Database error: {}", e);
-        CustomError::InternalServerError
-    })?;
-
-    Ok((StatusCode::CREATED, Json(created)))
 }
 
 pub async fn delete_channel(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-) -> Result<(StatusCode, Json<Value>), CustomError> {
-    let sql = "DELETE FROM channel WHERE id = ($1)";
-
-    let _ = sqlx::query(sql)
-        .bind(channel_id)
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::ChannelNotFound
-        })?;
-
-    Ok((StatusCode::OK, Json(json!({"channel": "Channel deleted"}))))
+) -> Response {
+    match Db::delete_channel(channel_id, &pool).await {
+        Ok(_) => {
+            let body = Json(json!({"channel": "Channel deleted"}));
+            (StatusCode::OK, body).into_response()
+        }
+        Err(e) => e.into_response(),
+    }
 }
+
