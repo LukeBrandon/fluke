@@ -8,17 +8,17 @@ use crate::errors::CustomError;
 use crate::db::Db;
 use crate::models::channel::{CreateChannelSchema, UpdateChannelSchema, ChannelModel};
 
-pub async fn list_channels(Extension(pool): Extension<PgPool>) -> Result<Json<Vec<ChannelModel>>, CustomError> {
+pub async fn list_channels(Extension(pool): Extension<PgPool>) -> Result<(StatusCode, Json<Vec<ChannelModel>>), CustomError>{
     let channels = Db::list_channels(&pool).await.map_err(CustomError::from)?;
-    Ok(Json(channels))
+    Ok((StatusCode::OK, Json(channels)))
 }
 
 pub async fn get_channel(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-) -> Result<Json<ChannelModel>, CustomError> {
+) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
     let channel = Db::get_channel(channel_id, &pool).await.map_err(CustomError::from)?;
-    Ok(Json(channel))
+    Ok((StatusCode::OK, Json(channel)))
 }
 
 pub async fn update_channel(

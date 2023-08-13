@@ -7,14 +7,14 @@ use crate::db::Db;
 use crate::models::message::MessageModel;
 use crate:: models::message::{CreateMessageSchema, UpdateMessageSchema};
 
-pub async fn list_messages(Path(channel_id): Path<i64>, Extension(pool): Extension<PgPool>) -> Result<Json<Vec<MessageModel>>, CustomError> {
+pub async fn list_messages(Path(channel_id): Path<i64>, Extension(pool): Extension<PgPool>) -> Result<(StatusCode, Json<Vec<MessageModel>>), CustomError>{
     let messages = Db::list_messages(channel_id, &pool).await.map_err(CustomError::from)?;
-    Ok(Json(messages))
+    Ok((StatusCode::OK, Json(messages)))
 }
 
-pub async fn get_message(Path((channel_id, message_id)): Path<(i64, i64)>, Extension(pool): Extension<PgPool>) -> Result<Json<MessageModel>, CustomError> {
+pub async fn get_message(Path((channel_id, message_id)): Path<(i64, i64)>, Extension(pool): Extension<PgPool>) -> Result<(StatusCode, Json<MessageModel>), CustomError>{
     let message = Db::get_message(channel_id, message_id, &pool).await.map_err(CustomError::from)?;
-    Ok(Json(message))
+    Ok((StatusCode::OK, Json(message)))
 }
 
 pub async fn delete_message(Path((channel_id , message_id)): Path<(i64, i64)>, Extension(pool): Extension<PgPool>)-> Result<(StatusCode, Json<Value>), CustomError> {
