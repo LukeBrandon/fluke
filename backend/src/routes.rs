@@ -1,5 +1,5 @@
 use axum::{
-    routing::{get, post},
+    routing::get,
     Router,
 };
 
@@ -10,14 +10,13 @@ pub fn user_router() -> Router {
     Router::new()
         .route("/users",
             get(controllers::user::list_users)
-            .post(controllers::user::new_user)
+            .post(controllers::user::create_user)
         )
-        .route("/users/signup", post(controllers::user::signup_user))
-        .route("/users/login", get(controllers::user::login_user))
+        .route("/users/login", get(controllers::user::verify_user))
         .route("/users/:user_id",
             get(controllers::user::get_user)
             .put(controllers::user::update_user)
-            .delete(controllers::user::delete_user)
+            .delete(controllers::user::delete_user_soft)
         )
 }
 

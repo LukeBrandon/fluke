@@ -7,6 +7,11 @@ pub struct CreateChannelSchema {
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]
+pub struct UpdateChannelSchema {
+    pub name: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRow)]
 pub struct ChannelModel {
     pub id: i64,
     pub name: String,
