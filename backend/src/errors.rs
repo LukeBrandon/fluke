@@ -6,17 +6,17 @@ use serde_json::json;
 use sqlx::Error as SqlxError;
 
 pub enum CustomError {
-    BadRequest,
     NotFound(String),
-    DatabaseError(String),
+    DatabaseError(SqlxError),
     InternalServerError,
 }
 
 impl From<SqlxError> for CustomError {
     fn from(err: SqlxError) -> Self {
         match err {
-            SqlxError::RowNotFound => CustomError::NotFound("Entity not found".to_string()),
-            SqlxError::Database(e) => CustomError::DatabaseError(e.to_string()),
+            SqlxError::Database(e) => {
+                CustomError::DatabaseError(sqlx::Error::Database(e))
+            },
             _ => CustomError::InternalServerError,
         }
     }
@@ -29,7 +29,6 @@ impl IntoResponse for CustomError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal Server Error".to_string(),
             ),
-            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request".to_string()),
             Self::NotFound(detail) => (StatusCode::NOT_FOUND, detail),
             Self::DatabaseError(detail) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
