@@ -68,7 +68,7 @@ pub async fn verify_user(
     let user_model = Db::verify_user(credentials.clone(), &pool)
         .await
         .map_err(CustomError::from)?
-        .ok_or_else(|| CustomError::NotFound(credentials.email.to_string()))?;
+        .ok_or_else(|| CustomError::BadRequest(credentials.email.to_string()))?;
 
     let response = UserLoginResponse {
         status: "Logged in".to_string(),
