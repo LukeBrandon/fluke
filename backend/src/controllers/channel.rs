@@ -27,7 +27,7 @@ pub async fn update_channel(
     Json(channel): Json<UpdateChannelSchema>,
 ) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
     let updated_channel = Db::update_channel(channel_id, &channel.name, &pool).await.map_err(CustomError::from)?;
-    Ok((StatusCode::CREATED, Json(updated_channel)))
+    Ok((StatusCode::OK, Json(updated_channel)))
 }
 
 pub async fn create_channel(
