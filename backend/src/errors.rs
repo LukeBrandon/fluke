@@ -29,18 +29,13 @@ impl IntoResponse for CustomError {
             Self::InternalServerError => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal Server Error".to_string(),
-            ),
+                ),
             Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request".to_string()),
             Self::NotFound(detail) => (StatusCode::NOT_FOUND, detail),
-            Self::DatabaseError(detail) => {
-                if details.is_unique_violation() || details.is_foreign_key_violation()  {
-                    return (StatusCode::BadRqeust. details.message.to_string())
-                }
-
-                return (StatusCode::INTERNAL_SERVER_ERROR, format!("Database Error: {}", detail))
-            },
+            Self::DatabaseError(db_error) =>
+                (StatusCode::INTERNAL_SERVER_ERROR, format!("Database Error: {}", db_error))
         };
-         let body = Json(json!({
+        let body = Json(json!({
             "error": error_message,
         }));
 
