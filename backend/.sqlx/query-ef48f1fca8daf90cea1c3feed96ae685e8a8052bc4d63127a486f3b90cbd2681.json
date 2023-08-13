@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE channel SET name=$1 WHERE id=$2 RETURNING *",
+  "query": "SELECT * FROM channel WHERE id = $1",
   "describe": {
     "columns": [
       {
@@ -21,7 +21,6 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
         "Int8"
       ]
     },
@@ -31,5 +30,5 @@
       false
     ]
   },
-  "hash": "5538e2d83e73cbb272770c6ddb2452d3cc69462e6e05a4b97b32014efcbfb671"
+  "hash": "ef48f1fca8daf90cea1c3feed96ae685e8a8052bc4d63127a486f3b90cbd2681"
 }

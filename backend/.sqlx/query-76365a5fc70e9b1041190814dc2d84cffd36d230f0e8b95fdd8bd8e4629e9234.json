@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT * FROM fluke_user",
+  "query": "UPDATE message SET message = $1 WHERE channel_id = $2 and id = $3 RETURNING *",
   "describe": {
     "columns": [
       {
@@ -10,35 +10,33 @@
       },
       {
         "ordinal": 1,
-        "name": "first_name",
+        "name": "message",
         "type_info": "Text"
       },
       {
         "ordinal": 2,
-        "name": "last_name",
-        "type_info": "Text"
+        "name": "created_at",
+        "type_info": "Timestamptz"
       },
       {
         "ordinal": 3,
-        "name": "email",
-        "type_info": "Varchar"
+        "name": "user_id",
+        "type_info": "Int8"
       },
       {
         "ordinal": 4,
-        "name": "password",
-        "type_info": "Text"
-      },
-      {
-        "ordinal": 5,
-        "name": "deleted",
-        "type_info": "Bool"
+        "name": "channel_id",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Text",
+        "Int8",
+        "Int8"
+      ]
     },
     "nullable": [
-      false,
       false,
       false,
       false,
@@ -46,5 +44,5 @@
       false
     ]
   },
-  "hash": "871eb1df908f281a2a896e72fd17ce9afd372d7955514e72727c135f47cb62dc"
+  "hash": "76365a5fc70e9b1041190814dc2d84cffd36d230f0e8b95fdd8bd8e4629e9234"
 }

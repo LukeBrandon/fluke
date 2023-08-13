@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO message (message, user_id, channel_id)  VALUES ($1, $2, $3) RETURNING *",
+  "query": "SELECT * FROM message where channel_id = $1 and id = $2",
   "describe": {
     "columns": [
       {
@@ -31,7 +31,6 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
         "Int8",
         "Int8"
       ]
@@ -44,5 +43,5 @@
       false
     ]
   },
-  "hash": "81dbd28a4c2d75e385ef32289d1e82acd78811d542a20eb2ed9941ec08474660"
+  "hash": "fdf8c1579c7ee86db16d796da3571b9b79a2bc50f7b6c2447a848d5965228d9e"
 }

@@ -1,64 +1,33 @@
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::{Extension, Json};
-
 use serde_json::{json, Value};
-
+use axum::{Extension, Json};
 use sqlx::PgPool;
 
 use crate::errors::CustomError;
+use crate::db::Db;
+use crate::models::channel::{CreateChannelSchema, UpdateChannelSchema, ChannelModel};
 
-use crate::models::channel::{CreateChannelSchema, ChannelModel};
-
-pub async fn list_channels(Extension(pool): Extension<PgPool>) -> impl IntoResponse {
-    let sql = "SELECT * FROM channel";
-
-    let task: Vec<ChannelModel> = sqlx::query_as::<_, ChannelModel>(sql)
-        .fetch_all(&pool)
-        .await
-        .unwrap();
-
-    (StatusCode::OK, Json(task))
+pub async fn list_channels(Extension(pool): Extension<PgPool>) -> Result<(StatusCode, Json<Vec<ChannelModel>>), CustomError>{
+    let channels = Db::list_channels(&pool).await.map_err(CustomError::from)?;
+    Ok((StatusCode::OK, Json(channels)))
 }
 
 pub async fn get_channel(
-    Path(id): Path<i64>,
+    Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-) -> Result<Json<ChannelModel>, CustomError> {
-    let sql = "SELECT * FROM channel where id = ($1)";
-
-    let channel: ChannelModel = sqlx::query_as::<_, ChannelModel>(sql)
-        .bind(id)
-        .fetch_one(&pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::ChannelNotFound
-        })?;
-
-    Ok(Json(channel))
+) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
+    let channel = Db::get_channel(channel_id, &pool).await.map_err(CustomError::from)?;
+    Ok((StatusCode::OK, Json(channel)))
 }
 
 pub async fn update_channel(
-    Path(id): Path<i64>,
+    Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-    Json(channel): Json<CreateChannelSchema>,
+    Json(channel): Json<UpdateChannelSchema>,
 ) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
-    let updated = sqlx::query_as!(
-        ChannelModel,
-        "UPDATE channel SET name=$1 WHERE id=$2 RETURNING *",
-        &channel.name,
-        id
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        eprintln!("Database error: {}", e);
-        CustomError::InternalServerError
-    })?;
-
-    Ok((StatusCode::OK, Json(updated)))
+    let updated_channel = Db::update_channel(channel_id, &channel.name, &pool).await.map_err(CustomError::from)?;
+    Ok((StatusCode::OK, Json(updated_channel)))
 }
 
 pub async fn create_channel(
@@ -69,35 +38,15 @@ pub async fn create_channel(
         return Err(CustomError::BadRequest);
     }
 
-    let created = sqlx::query_as!(
-        ChannelModel,
-        "INSERT INTO channel (name) VALUES ($1) RETURNING *",
-        &channel.name
-    )
-    .fetch_one(&pool)
-    .await
-    .map_err(|e| {
-        eprintln!("Database error: {}", e);
-        CustomError::InternalServerError
-    })?;
-
-    Ok((StatusCode::CREATED, Json(created)))
+    let created_channel = Db::create_channel(&channel.name, &pool).await.map_err(CustomError::from)?;
+    Ok((StatusCode::CREATED, Json(created_channel)))
 }
 
 pub async fn delete_channel(
-    Path(id): Path<i64>,
+    Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<Value>), CustomError> {
-    let sql = "DELETE FROM channel WHERE id = ($1)";
-
-    let _ = sqlx::query(sql)
-        .bind(id)
-        .execute(&pool)
-        .await
-        .map_err(|e| {
-            eprintln!("Database error: {}", e);
-            CustomError::ChannelNotFound
-        })?;
-
+    let _ = Db::delete_channel(channel_id, &pool).await.map_err(CustomError::from)?;
     Ok((StatusCode::OK, Json(json!({"channel": "Channel deleted"}))))
 }
+

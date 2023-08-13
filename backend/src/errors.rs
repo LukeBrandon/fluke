@@ -1,32 +1,46 @@
 use std::fmt;
-
-use axum::{http::StatusCode, response::IntoResponse, Json};
+use axum::{http::StatusCode,
+response::{IntoResponse, Response, Json}
+};
 use serde_json::json;
+use sqlx::Error as SqlxError;
 
 pub enum CustomError {
+    NotFound(String),
     BadRequest,
-    MessageNotFound,
-    ChannelNotFound,
-    UserNotFound(String),
+    DatabaseError(SqlxError),
     InternalServerError,
 }
 
+impl From<SqlxError> for CustomError {
+    fn from(err: SqlxError) -> Self {
+        match err {
+            SqlxError::Database(e) => {
+                CustomError::DatabaseError(sqlx::Error::Database(e))
+            },
+            _ => CustomError::InternalServerError,
+        }
+    }
+}
+
 impl IntoResponse for CustomError {
-    fn into_response(self) -> axum::response::Response {
+    fn into_response(self) -> Response {
         let (status, error_message) = match self {
             Self::InternalServerError => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal Server Error".to_string(),
             ),
             Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request".to_string()),
-            Self::MessageNotFound => (StatusCode::NOT_FOUND, "Message Not Found".to_string()),
-            Self::ChannelNotFound => (StatusCode::NOT_FOUND, "Channel Not Found".to_string()),
-            Self::UserNotFound(user_param) => {
-                let msg = format!("User Not Found: {}", user_param);
-                (StatusCode::NOT_FOUND, msg)
-            }
+            Self::NotFound(detail) => (StatusCode::NOT_FOUND, detail),
+            Self::DatabaseError(db_error) =>
+                (StatusCode::INTERNAL_SERVER_ERROR, format!("Database Error: {}", db_error))
         };
-        (status, Json(json!({ "error": error_message }))).into_response()
+        let body = Json(json!({
+            "error": error_message,
+        }));
+
+        (status, body).into_response()
+
     }
 }
 

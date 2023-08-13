@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE fluke_user SET deleted=true WHERE id=$1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "723fe4ec62fa65eb49c22501b0e3aeb9b3ecd9e813c49e14414ff0a3da549ddf"
+}

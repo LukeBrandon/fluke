@@ -1,5 +1,4 @@
 const DEFAULT_PORT: u16 = 8000;
-
 pub struct FlukePort(pub u16);
 
 impl Default for FlukePort {

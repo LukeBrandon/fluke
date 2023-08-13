@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        INSERT INTO fluke_user (first_name, last_name, email, password)\n        VALUES ($1, $2, $3, $4)\n        RETURNING *\n        ",
+  "query": "SELECT * FROM fluke_user WHERE deleted=false",
   "describe": {
     "columns": [
       {
@@ -35,12 +35,7 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Text",
-        "Text",
-        "Varchar",
-        "Text"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
@@ -51,5 +46,5 @@
       false
     ]
   },
-  "hash": "f4e4884e2c2472db793854e49d3cc6c6b755ad59037d82bc575f96ca28690357"
+  "hash": "c3cb49b2ce6159033668bed871d7df83efdecd18ab310d7651e8f13b56bc2ff3"
 }
