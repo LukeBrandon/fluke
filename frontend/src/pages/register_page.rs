@@ -11,7 +11,7 @@ use crate::router::{self, Route};
 use crate::store::{set_page_loading, Store};
 
 use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationErrors, ValidationError};
+use validator::{Validate, ValidationError, ValidationErrors};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
@@ -36,7 +36,7 @@ fn validate_password(password: &str) -> Result<(), ValidationError> {
     }
     if !has_whitespace && has_upper && has_lower && has_digit && password.len() >= 8 {
         Ok(())
-    } else { 
+    } else {
         return Err(ValidationError::new("Password Validation Failed"));
     }
 }
@@ -93,7 +93,8 @@ fn get_input_callback(
 pub fn register_page() -> Html {
     let (store, dispatch) = use_store::<Store>();
     let form: UseStateHandle<RegisterUserSchema> = use_state(|| RegisterUserSchema::default());
-    let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = use_state(|| Rc::new(RefCell::new(ValidationErrors::new())));
+    let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+        use_state(|| Rc::new(RefCell::new(ValidationErrors::new())));
     let navigator: Navigator = use_navigator().unwrap();
 
     let first_name_input_ref: NodeRef = NodeRef::default();
@@ -104,7 +105,8 @@ pub fn register_page() -> Html {
 
     let validate_input_on_blur: Callback<(String, String)> = {
         let cloned_form: UseStateHandle<RegisterUserSchema> = form.clone();
-        let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = validation_errors.clone();
+        let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+            validation_errors.clone();
         Callback::from(move |(name, value): (String, String)| {
             let mut data: RegisterUserSchema = cloned_form.deref().clone();
             match name.as_str() {
@@ -146,11 +148,13 @@ pub fn register_page() -> Html {
     let handle_last_name_input: Callback<String> = get_input_callback("last_name", form.clone());
     let handle_email_input: Callback<String> = get_input_callback("email", form.clone());
     let handle_password_input: Callback<String> = get_input_callback("password", form.clone());
-    let handle_password_confirm_input: Callback<String> = get_input_callback("password_confirm", form.clone());
+    let handle_password_confirm_input: Callback<String> =
+        get_input_callback("password_confirm", form.clone());
 
     let on_submit: Callback<SubmitEvent> = {
         let cloned_form: UseStateHandle<RegisterUserSchema> = form.clone();
-        let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = validation_errors.clone();
+        let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+            validation_errors.clone();
         let cloned_navigator: Navigator = navigator.clone();
         let cloned_dispatch: Dispatch<Store> = dispatch.clone();
 
@@ -162,7 +166,8 @@ pub fn register_page() -> Html {
 
         Callback::from(move |event: SubmitEvent| {
             let form: UseStateHandle<RegisterUserSchema> = cloned_form.clone();
-            let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = cloned_validation_errors.clone();
+            let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+                cloned_validation_errors.clone();
             let navigator: Navigator = cloned_navigator.clone();
             let dispatch: Dispatch<Store> = cloned_dispatch.clone();
 
@@ -180,10 +185,14 @@ pub fn register_page() -> Html {
                         let form_json: String = serde_json::to_string(&form_data).unwrap();
                         set_page_loading(true, dispatch.clone());
 
-                        let first_name_input: HtmlInputElement = first_name_input_ref.cast::<HtmlInputElement>().unwrap();
-                        let last_name_input: HtmlInputElement = last_name_input_ref.cast::<HtmlInputElement>().unwrap();
-                        let email_input: HtmlInputElement = email_input_ref.cast::<HtmlInputElement>().unwrap();
-                        let password_input: HtmlInputElement = password_input_ref.cast::<HtmlInputElement>().unwrap();
+                        let first_name_input: HtmlInputElement =
+                            first_name_input_ref.cast::<HtmlInputElement>().unwrap();
+                        let last_name_input: HtmlInputElement =
+                            last_name_input_ref.cast::<HtmlInputElement>().unwrap();
+                        let email_input: HtmlInputElement =
+                            email_input_ref.cast::<HtmlInputElement>().unwrap();
+                        let password_input: HtmlInputElement =
+                            password_input_ref.cast::<HtmlInputElement>().unwrap();
                         let password_confirm_input: HtmlInputElement = password_confirm_input_ref
                             .cast::<HtmlInputElement>()
                             .unwrap();
@@ -194,7 +203,8 @@ pub fn register_page() -> Html {
                         password_input.set_value("");
                         password_confirm_input.set_value("");
 
-                        let res: Result<crate::api::types::User, String> = api_register_user(&form_json).await;
+                        let res: Result<crate::api::types::User, String> =
+                            api_register_user(&form_json).await;
                         match res {
                             Ok(_) => {
                                 set_page_loading(false, dispatch.clone());

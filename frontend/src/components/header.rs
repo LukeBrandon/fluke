@@ -1,8 +1,8 @@
-use crate::store::Store;
-use yew_router::prelude::*;
-use yew::prelude::*;
-use yewdux::prelude::*;
 use crate::router::Route;
+use crate::store::Store;
+use yew::prelude::*;
+use yew_router::prelude::*;
+use yewdux::prelude::*;
 
 #[function_component(Header)]
 pub fn header_component() -> Html {

@@ -3,7 +3,6 @@ use yewdux::prelude::*;
 
 use crate::api::types::User;
 
-
 #[derive(Debug, Serialize, Deserialize, Default, Clone, PartialEq, Store)]
 pub struct Store {
     pub auth_user: Option<User>,

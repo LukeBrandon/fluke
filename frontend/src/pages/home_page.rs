@@ -14,7 +14,7 @@ impl Component for HomePage {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
-            <> 
+            <>
                 <Header />
                 <section class="section"> // account for fixed nav bar size
                     <AboutPage />

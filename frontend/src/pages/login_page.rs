@@ -5,7 +5,7 @@ use std::rc::Rc;
 use crate::api::user_api::api_login_user;
 use crate::components::{form_input::FormInput, loading_button::LoadingButton};
 use crate::router::{self, Route};
-use crate::store::{set_page_loading, set_user_auth_error, Store };
+use crate::store::{set_page_loading, set_user_auth_error, Store};
 
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationErrors};
@@ -49,7 +49,8 @@ fn get_input_callback(
 pub fn login_page() -> Html {
     let (store, dispatch) = use_store::<Store>();
     let form: UseStateHandle<LoginUserSchema> = use_state(|| LoginUserSchema::default());
-    let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = use_state(|| Rc::new(RefCell::new(ValidationErrors::new())));
+    let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+        use_state(|| Rc::new(RefCell::new(ValidationErrors::new())));
 
     let navigator: Navigator = use_navigator().unwrap();
 
@@ -57,8 +58,9 @@ pub fn login_page() -> Html {
     let password_input_ref: NodeRef = NodeRef::default();
 
     let validate_input_on_blur: Callback<(String, String)> = {
-    let cloned_form: UseStateHandle<LoginUserSchema> = form.clone();
-    let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = validation_errors.clone();
+        let cloned_form: UseStateHandle<LoginUserSchema> = form.clone();
+        let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+            validation_errors.clone();
         Callback::from(move |(name, value): (String, String)| {
             let mut data: LoginUserSchema = cloned_form.deref().clone();
             match name.as_str() {
@@ -98,7 +100,8 @@ pub fn login_page() -> Html {
 
     let on_submit: Callback<SubmitEvent> = {
         let cloned_form: UseStateHandle<LoginUserSchema> = form.clone();
-        let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = validation_errors.clone();
+        let cloned_validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+            validation_errors.clone();
         let store_dispatch: Dispatch<Store> = dispatch.clone();
         let cloned_navigator: Navigator = navigator.clone();
 
@@ -110,7 +113,8 @@ pub fn login_page() -> Html {
 
             let dispatch: Dispatch<Store> = store_dispatch.clone();
             let form: UseStateHandle<LoginUserSchema> = cloned_form.clone();
-            let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> = cloned_validation_errors.clone();
+            let validation_errors: UseStateHandle<Rc<RefCell<ValidationErrors>>> =
+                cloned_validation_errors.clone();
             let navigator: Navigator = cloned_navigator.clone();
 
             let email_input_ref: NodeRef = cloned_email_input_ref.clone();
@@ -122,14 +126,17 @@ pub fn login_page() -> Html {
                         let form_data: LoginUserSchema = form.deref().clone();
                         set_page_loading(true, dispatch.clone());
 
-                        let email_input: HtmlInputElement = email_input_ref.cast::<HtmlInputElement>().unwrap();
-                        let password_input: HtmlInputElement = password_input_ref.cast::<HtmlInputElement>().unwrap();
+                        let email_input: HtmlInputElement =
+                            email_input_ref.cast::<HtmlInputElement>().unwrap();
+                        let password_input: HtmlInputElement =
+                            password_input_ref.cast::<HtmlInputElement>().unwrap();
 
                         email_input.set_value("");
                         password_input.set_value("");
 
                         let form_json: String = serde_json::to_string(&form_data).unwrap();
-                        let res: Result<crate::api::types::UserLoginResponse, String> = api_login_user(&form_json).await;
+                        let res: Result<crate::api::types::UserLoginResponse, String> =
+                            api_login_user(&form_json).await;
                         match res {
                             Ok(_) => {
                                 set_page_loading(false, dispatch);
@@ -140,7 +147,10 @@ pub fn login_page() -> Html {
                             Err(e) => {
                                 log::warn!("User login error: {}", e);
                                 set_page_loading(false, dispatch.clone());
-                                set_user_auth_error("Invalid username or password".to_string(), dispatch);
+                                set_user_auth_error(
+                                    "Invalid username or password".to_string(),
+                                    dispatch,
+                                );
                                 log::warn!("User login error with form: {:?}", &form_json)
                             }
                         };

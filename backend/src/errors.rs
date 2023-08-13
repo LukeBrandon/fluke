@@ -1,9 +1,10 @@
-use std::fmt;
-use axum::{http::StatusCode,
-response::{IntoResponse, Response, Json}
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Json, Response},
 };
 use serde_json::json;
 use sqlx::Error as SqlxError;
+use std::fmt;
 
 pub enum CustomError {
     NotFound(String),
@@ -15,9 +16,7 @@ pub enum CustomError {
 impl From<SqlxError> for CustomError {
     fn from(err: SqlxError) -> Self {
         match err {
-            SqlxError::Database(e) => {
-                CustomError::DatabaseError(sqlx::Error::Database(e))
-            },
+            SqlxError::Database(e) => CustomError::DatabaseError(sqlx::Error::Database(e)),
             _ => CustomError::InternalServerError,
         }
     }
@@ -32,15 +31,16 @@ impl IntoResponse for CustomError {
             ),
             Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request".to_string()),
             Self::NotFound(detail) => (StatusCode::NOT_FOUND, detail),
-            Self::DatabaseError(db_error) =>
-                (StatusCode::INTERNAL_SERVER_ERROR, format!("Database Error: {}", db_error))
+            Self::DatabaseError(db_error) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Database Error: {}", db_error),
+            ),
         };
         let body = Json(json!({
             "error": error_message,
         }));
 
         (status, body).into_response()
-
     }
 }
 

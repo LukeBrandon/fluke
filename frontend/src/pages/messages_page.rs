@@ -1,10 +1,10 @@
-use std::rc::Rc;
-use yew::prelude::*;
-use wasm_bindgen_futures::spawn_local;
-use yewdux::prelude::*;
 use crate::api::message_api::api_get_messages;
-use crate::store::{set_page_loading, Store};
 use crate::api::types::Message;
+use crate::store::{set_page_loading, Store};
+use std::rc::Rc;
+use wasm_bindgen_futures::spawn_local;
+use yew::prelude::*;
+use yewdux::prelude::*;
 
 #[function_component(MessagesPage)]
 pub fn messages_page() -> Html {
