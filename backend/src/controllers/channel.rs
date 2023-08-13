@@ -1,77 +1,48 @@
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
+use serde_json::{json, Value};
 use axum::{Extension, Json};
 use sqlx::PgPool;
-use serde_json::json;
 
-use crate::models::{
-    database::Db,
-    channel::{CreateChannelSchema, UpdateChannelSchema}
-};
+use crate::errors::CustomError;
+use crate::db::Db;
+use crate::models::channel::{CreateChannelSchema, UpdateChannelSchema, ChannelModel};
 
-pub async fn list_channels(
-    Extension(pool): Extension<PgPool>
-) -> Response {
-    match Db::list_channels(&pool).await {
-        Ok(channels) => {
-            let body = Json(channels);
-            (StatusCode::OK, body).into_response()
-        }
-        Err(e) => e.into_response(),
-    }
+pub async fn list_channels(Extension(pool): Extension<PgPool>) -> Result<Json<Vec<ChannelModel>>, CustomError> {
+    let channels = Db::list_channels(&pool).await.map_err(CustomError::from)?;
+    Ok(Json(channels))
 }
 
 pub async fn get_channel(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-) -> Response {
-    match Db::get_channel(channel_id, &pool).await {
-        Ok(channel) => {
-            let body = Json(channel);
-            (StatusCode::OK, body).into_response()
-        }
-        Err(e) => e.into_response(),
-    }
+) -> Result<Json<ChannelModel>, CustomError> {
+    let channel = Db::get_channel(channel_id, &pool).await.map_err(CustomError::from)?;
+    Ok(Json(channel))
 }
 
 pub async fn update_channel(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
     Json(channel): Json<UpdateChannelSchema>,
-) -> Response {
-    match Db::update_channel(channel_id, &channel.name, &pool).await {
-        Ok(updated) => {
-            let body = Json(updated);
-            (StatusCode::OK, body).into_response()
-        }
-        Err(e) => e.into_response(),
-    }
+) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
+    let updated_channel = Db::update_channel(channel_id, &channel.name, &pool).await.map_err(CustomError::from)?;
+    Ok((StatusCode::CREATED, Json(updated_channel)))
 }
 
 pub async fn create_channel(
     Extension(pool): Extension<PgPool>,
     Json(channel): Json<CreateChannelSchema>,
-) -> Response {
-    match Db::create_channel(&channel.name, &pool).await {
-        Ok(created) => {
-            let body = Json(created);
-            (StatusCode::CREATED, body).into_response()
-        }
-        Err(e) => e.into_response(),
-    }
+) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
+    let created_channel = Db::create_channel(&channel.name, &pool).await.map_err(CustomError::from)?;
+    Ok((StatusCode::CREATED, Json(created_channel)))
 }
 
 pub async fn delete_channel(
     Path(channel_id): Path<i64>,
     Extension(pool): Extension<PgPool>,
-) -> Response {
-    match Db::delete_channel(channel_id, &pool).await {
-        Ok(_) => {
-            let body = Json(json!({"channel": "Channel deleted"}));
-            (StatusCode::OK, body).into_response()
-        }
-        Err(e) => e.into_response(),
-    }
+) -> Result<(StatusCode, Json<Value>), CustomError> {
+    let _ = Db::delete_channel(channel_id, &pool).await.map_err(CustomError::from)?;
+    Ok((StatusCode::OK, Json(json!({"channel": "Channel deleted"}))))
 }
 
