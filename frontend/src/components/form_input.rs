@@ -23,7 +23,8 @@ pub fn form_input_component(props: &Props) -> Html {
         .clone()
         .unwrap_or_else(|| "text".to_string());
     let val_errors: std::cell::Ref<'_, ValidationErrors> = props.errors.borrow();
-    let errors: std::collections::HashMap<&str, &Vec<validator::ValidationError>> = val_errors.field_errors().clone();
+    let errors: std::collections::HashMap<&str, &Vec<validator::ValidationError>> =
+        val_errors.field_errors().clone();
     let empty_errors: Vec<validator::ValidationError> = vec![];
     let error: &Vec<validator::ValidationError> = match errors.get(&props.name.as_str()) {
         Some(error) => error,

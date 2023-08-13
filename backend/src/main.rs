@@ -11,12 +11,12 @@ use std::{net::SocketAddr, time::Duration};
 use tower_http::{add_extension::AddExtensionLayer, cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::EnvFilter;
 
-mod db;
-mod routes;
 mod configuration;
 mod controllers;
+mod db;
 mod errors;
 mod models;
+mod routes;
 
 #[tokio::main]
 async fn main() {
@@ -73,8 +73,8 @@ struct DatabaseConnection(sqlx::pool::PoolConnection<sqlx::Postgres>);
 #[async_trait]
 impl<S> FromRequestParts<S> for DatabaseConnection
 where
-PgPool: FromRef<S>,
-S: Send + Sync,
+    PgPool: FromRef<S>,
+    S: Send + Sync,
 {
     type Rejection = (StatusCode, String);
 
@@ -90,7 +90,7 @@ S: Send + Sync,
 /// Utility function for mapping any error into a `500 Internal Server Error`
 /// response.
 fn internal_error<E>(err: E) -> (StatusCode, String)
-    where
+where
     E: std::error::Error,
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())

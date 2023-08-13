@@ -1,14 +1,11 @@
-use crate::components::{
-    spinner::Spinner,
-};
+use crate::components::spinner::Spinner;
 use yew::prelude::*;
 use yew_router::prelude::*;
 use yewdux::prelude::use_store;
 
-use crate::store::Store;
 use crate::router::{switch, Route};
+use crate::store::Store;
 
- 
 #[function_component(App)]
 pub fn app() -> Html {
     let (store, _) = use_store::<Store>();

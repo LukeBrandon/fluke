@@ -2,10 +2,7 @@ use super::types::{ErrorResponse, Message};
 use gloo_net::http::Request;
 
 pub async fn api_get_messages() -> Result<Vec<Message>, String> {
-    let response = match Request::get("http://127.0.0.1:8000/messages")
-        .send()
-        .await
-    {
+    let response = match Request::get("http://127.0.0.1:8000/messages").send().await {
         Ok(res) => res,
         Err(_) => return Err("Failed to make request".to_string()),
     };

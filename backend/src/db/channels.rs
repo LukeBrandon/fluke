@@ -1,17 +1,14 @@
-use sqlx::PgPool;
 use sqlx::postgres::PgQueryResult;
+use sqlx::PgPool;
 
 use crate::db::Db;
 use crate::models::channel::ChannelModel;
 
 impl Db {
     pub async fn list_channels(pool: &PgPool) -> Result<Vec<ChannelModel>, sqlx::Error> {
-        sqlx::query_as!(
-            ChannelModel,
-            "SELECT * FROM channel"
-        )
-        .fetch_all(pool)
-        .await
+        sqlx::query_as!(ChannelModel, "SELECT * FROM channel")
+            .fetch_all(pool)
+            .await
     }
 
     pub async fn get_channel(channel_id: i64, pool: &PgPool) -> Result<ChannelModel, sqlx::Error> {
@@ -27,7 +24,7 @@ impl Db {
     pub async fn update_channel(
         channel_id: i64,
         name: &str,
-        pool: &PgPool
+        pool: &PgPool,
     ) -> Result<ChannelModel, sqlx::Error> {
         sqlx::query_as!(
             ChannelModel,
@@ -49,13 +46,12 @@ impl Db {
         .await
     }
 
-    pub async fn delete_channel(channel_id: i64, pool: &PgPool) -> Result<PgQueryResult, sqlx::Error> {
-        sqlx::query!(
-            "DELETE FROM channel WHERE id = $1",
-            channel_id
-        )
-        .execute(pool)
-        .await
+    pub async fn delete_channel(
+        channel_id: i64,
+        pool: &PgPool,
+    ) -> Result<PgQueryResult, sqlx::Error> {
+        sqlx::query!("DELETE FROM channel WHERE id = $1", channel_id)
+            .execute(pool)
+            .await
     }
 }
-
