@@ -35,9 +35,9 @@ pub async fn create_channel(
     Json(channel): Json<CreateChannelSchema>,
 ) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
     if channel.name.is_empty() {
-        return Err(CustomError::BadRequest));
+        return Err(CustomError::BadRequest);
     }
-    
+
     let created_channel = Db::create_channel(&channel.name, &pool).await.map_err(CustomError::from)?;
     Ok((StatusCode::CREATED, Json(created_channel)))
 }
