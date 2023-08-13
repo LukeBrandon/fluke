@@ -22,6 +22,5 @@ jobs:
         components: rustfmt
 
     - name: backend format
-      #  uses: actions-rust-lang/rustfmt@v1
       working-directory: ./backend
       run: cargo fmt --check
