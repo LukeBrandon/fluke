@@ -1,0 +1,27 @@
+
+name: Cargo format
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        components: rustfmt
+
+    - name: backend format
+      #  uses: actions-rust-lang/rustfmt@v1
+      working-directory: ./backend
+      run: cargo fmt --check
