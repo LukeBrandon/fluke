@@ -8,7 +8,7 @@ RUN cargo build --release
 
 # Remove the dummy main.rs and copy the source code
 RUN rm src/main.rs
-COPY backend/src ./src
+COPY backend ./src
 RUN cargo build
 
 FROM debian:buster-slim

@@ -26,11 +26,32 @@ async fn main() {
     let config = configuration::load_config();
     let port = config.port.0;
 
+    // Initialize our logger
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .pretty()
         .init();
-  
+
+    // Connect to our database
+    let pool: sqlx::Pool<sqlx::Postgres> = PgPoolOptions::new()
+        .max_connections(5)
+        .acquire_timeout(Duration::from_secs(3))
+        .connect(&config.database_url)
+        .await
+        .expect("Could not connect to database");
+
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .expect("Error running migrations");
+
+    // Set up middleware
+    let middleware_stack = ServiceBuilder::new()
+        .layer(TraceLayer::new_for_http())
+        .layer(CorsLayer::very_permissive()) // !! todo: change this bad
+        .layer(AddExtensionLayer::new(pool))
+        .into_inner();
+
     // Build our server
     let app = Router::new()
         .merge(routes::user_router())
@@ -77,3 +98,4 @@ fn internal_error<E>(err: E) -> (StatusCode, String)
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }
+
