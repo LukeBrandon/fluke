@@ -29,6 +29,7 @@ impl IntoResponse for CustomError {
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal Server Error".to_string(),
             ),
+            Self::BadRequest => (StatusCode::BAD_REQUEST, "Bad Request".to_string()),
             Self::NotFound(detail) => (StatusCode::NOT_FOUND, detail),
             Self::DatabaseError(detail) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
