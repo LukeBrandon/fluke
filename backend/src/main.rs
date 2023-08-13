@@ -11,7 +11,7 @@ use std::{net::SocketAddr, time::Duration};
 use tower_http::{add_extension::AddExtensionLayer, cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::EnvFilter;
 
-mod queries;
+mod db;
 mod routes;
 mod configuration;
 mod controllers;
