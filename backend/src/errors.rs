@@ -7,6 +7,7 @@ use sqlx::Error as SqlxError;
 
 pub enum CustomError {
     NotFound(String),
+    BadRequest,
     DatabaseError(SqlxError),
     InternalServerError,
 }
