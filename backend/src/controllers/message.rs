@@ -29,5 +29,5 @@ pub async fn update_message(Path((channel_id, message_id)): Path<(i64, i64)>, Ex
 
 pub async fn create_message(Path(channel_id): Path<i64>, Extension(pool): Extension<PgPool>, Json(message): Json<CreateMessageSchema>)-> Result<(StatusCode, Json<MessageModel>), CustomError> {
     let created_message = Db::create_message(channel_id, &message.message, &message.user_id, &pool).await.map_err(CustomError::from)?;
-    Ok((StatusCode::OK, Json(created_message)))
+    Ok((StatusCode::CREATED, Json(created_message)))
 }
