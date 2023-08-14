@@ -41,7 +41,9 @@ pub async fn create_channel(
     Json(channel): Json<CreateChannelSchema>,
 ) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
     if channel.name.is_empty() {
-        return Err(CustomError::BadRequest("A channel name is required".to_string()));
+        return Err(CustomError::BadRequest(
+            "A channel name is required".to_string(),
+        ));
     }
 
     let created_channel = Db::create_channel(&channel.name, &pool)
