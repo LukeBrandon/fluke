@@ -30,6 +30,11 @@ pub async fn update_channel(
     Extension(pool): Extension<PgPool>,
     Json(channel): Json<UpdateChannelSchema>,
 ) -> Result<(StatusCode, Json<ChannelModel>), CustomError> {
+    if channel.name.is_empty() {
+        return Err(CustomError::BadRequest(
+            "A channel name is required".to_string(),
+        ));
+    }
     let updated_channel = Db::update_channel(channel_id, &channel.name, &pool)
         .await
         .map_err(CustomError::from)?;
