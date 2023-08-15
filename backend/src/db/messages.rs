@@ -55,7 +55,7 @@ impl Db {
     ) -> Result<MessageModel, sqlx::Error> {
         sqlx::query_as!(
             MessageModel,
-            "UPDATE message SET message = $1 WHERE channel_id = $2 and id = $3 RETURNING *",
+            "UPDATE message SET message = $1, updated_at = now() WHERE channel_id = $2 and id = $3 RETURNING *",
             &message,
             channel_id,
             message_id

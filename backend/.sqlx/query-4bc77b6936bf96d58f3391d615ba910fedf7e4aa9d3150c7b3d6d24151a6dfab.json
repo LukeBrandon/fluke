@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "channel_id",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -37,6 +42,7 @@
       ]
     },
     "nullable": [
+      false,
       false,
       false,
       false,
