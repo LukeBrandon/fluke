@@ -17,6 +17,7 @@ pub struct MessageModel {
     pub id: i64,
     pub message: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
     pub user_id: i64,
     pub channel_id: i64,
 }

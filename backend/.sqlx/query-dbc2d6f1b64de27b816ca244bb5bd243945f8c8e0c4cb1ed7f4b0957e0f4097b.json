@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE message SET message = $1 WHERE channel_id = $2 and id = $3 RETURNING *",
+  "query": "UPDATE message SET message = $1, updated_at = now() WHERE channel_id = $2 and id = $3 RETURNING *",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "channel_id",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -41,8 +46,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "76365a5fc70e9b1041190814dc2d84cffd36d230f0e8b95fdd8bd8e4629e9234"
+  "hash": "dbc2d6f1b64de27b816ca244bb5bd243945f8c8e0c4cb1ed7f4b0957e0f4097b"
 }
