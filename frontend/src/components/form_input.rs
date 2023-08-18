@@ -5,6 +5,7 @@ use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
+#[allow(non_camel_case_types)]
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub input_type: Option<String>,

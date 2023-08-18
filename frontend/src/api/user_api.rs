@@ -1,7 +1,10 @@
 use super::types::{ErrorResponse, User, UserLoginResponse, UserResponse};
-use gloo_net::http::{Request, RequestCredentials};
+use gloo_net::http::Request;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::RequestCredentials;
 
-pub async fn api_register_user(user_data: &str) -> Result<User, String> {
+pub async fn api_register_user(user_data: &str) -> Result<UserResponse, String> {
     let response = match Request::post("http://127.0.0.1:8000/users/signup")
         .header("Content-Type", "application/json")
         .body(user_data)
