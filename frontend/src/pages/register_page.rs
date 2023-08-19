@@ -5,7 +5,7 @@ use std::rc::Rc;
 use lazy_static::lazy_static;
 use regex;
 
-use crate::api::user_api::api_register_user;
+use crate::api::user_api::api_create_user;
 use crate::components::{form_input::FormInput, loading_button::LoadingButton};
 use crate::router::{self, Route};
 use crate::store::{set_page_loading, Store};
@@ -111,7 +111,7 @@ pub fn register_page() -> Html {
             let mut data: RegisterUserSchema = cloned_form.deref().clone();
             match name.as_str() {
                 "first_name" => data.first_name = value,
-                "last_name" => data.last_name = value, // Corrected the assignment here
+                "last_name" => data.last_name = value,
                 "email" => data.email = value,
                 "password" => data.password = value,
                 "password_confirm" => data.password_confirm = value,
@@ -203,13 +203,12 @@ pub fn register_page() -> Html {
                         password_input.set_value("");
                         password_confirm_input.set_value("");
 
-                        let res: Result<crate::api::types::User, String> =
-                            api_register_user(&form_json).await;
+                        let res: Result<crate::api::types::UserModel, String> =
+                            api_create_user(&form_json).await;
                         match res {
                             Ok(_) => {
                                 set_page_loading(false, dispatch.clone());
-
-                                navigator.push(&router::Route::LoginPage);
+                                navigator.push(&router::Route::ListPage);
                             }
                             Err(_) => {
                                 set_page_loading(false, dispatch.clone());
@@ -282,7 +281,7 @@ pub fn register_page() -> Html {
                     />
                     <span class="block">
                         {"Already have an account?"} {" "}
-                        <Link<Route> to={Route::LoginPage} classes="fluke-blue">{"Login Here"}</Link<Route>>
+                        <Link<Route> to={Route::ListPage} classes="fluke-blue">{"Login Here"}</Link<Route>>
                     </span>
                     <LoadingButton
                         loading={store.page_loading}
