@@ -1,5 +1,5 @@
 use crate::components::header::Header;
-use crate::pages::about_page::AboutPage;
+use crate::pages::register_page::RegisterPage;
 use yew::prelude::*;
 
 pub struct HomePage;
@@ -17,7 +17,7 @@ impl Component for HomePage {
             <>
                 <Header />
                 <section class="section"> // account for fixed nav bar size
-                    <AboutPage />
+                    <RegisterPage />
                 </section>
             </>
         }
