@@ -1,9 +1,9 @@
 import React from 'react';
 import SignupForm from '../components/SignupForm';
-import { FormData } from "../types";
+import { SignupData } from "../types";
 
 const SignupPage: React.FC = () => {
-  const handleSignup = (data: FormData) => {
+  const handleSignup = (data: SignupData) => {
     console.log(data);
   };
 
