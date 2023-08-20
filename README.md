@@ -1,12 +1,22 @@
 # Fluke
-### Fluke is a discord-like app written in Rust
 
-Files are served from backup/static, to build files run 
+## Fluke is a privacy-first self-hosted chat server client
+
+Files are served from backup/static, to build files run
+
 `cd frontend`
-`trunk build --release` 
-or run `dev/serve.sh`
+`npm run dev`  # for web hosted site
+`npm run tauri dev` # for application
 
-### Stack
-- [yew.rs](https://yew.rs/)
+## Stack
+
+### Backend
 - [axum](https://github.com/tokio-rs/axum)
 - [sqlx.rs](https://docs.rs/sqlx/0.6.3/sqlx/index.html)
+
+### Frontend
+- [tauri](https://tauri.app/)
+- [react](https://react.dev/)
+- [vite build tool](https://vitejs.dev/guide/why.html)
+- [tailwindCSS](https://tailwindcss.com/)
+- [materialUI design](https://mui.com/material-ui/)
