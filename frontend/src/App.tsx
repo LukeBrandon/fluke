@@ -30,13 +30,13 @@ export default function App() {
             <Box sx={{ my: 4 }}>
                 <MainContainer>
                     <div>
-                        <h1>Channel Selector:</h1>
+                        <h2>Channel Selector:</h2>
+                        <br></br>
                         <ChannelSelector onChannelSelect={handleChannelSelect} />
                         {channelId && (
                             <>
                                 <h2>Messages from Channel {channelId}:</h2>
                                 <MessageDisplay url={`http://localhost:8000/channels/${channelId}/messages`} />
-                                <MessageDisplay url={`https://api.example.com/${channelId}`} />
                             </>
                         )}
                     </div>

@@ -15,7 +15,7 @@ interface ChannelSelectorProps {
 
 const ChannelSelector: React.FC<ChannelSelectorProps> = ({ onChannelSelect }) => {
   const [channels, setChannels] = useState<Channels>([]);
-    const [selectedChannel, setSelectedChannel] = useState<number>(-1);
+    const [selectedChannel, setSelectedChannel] = useState<number>(0);
   useEffect(() => {
     fetch("http://localhost:8000/channels")
       .then(response => response.json())
