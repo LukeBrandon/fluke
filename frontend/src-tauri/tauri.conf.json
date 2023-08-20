@@ -2,11 +2,11 @@
   "build": {
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:9000",
+    "devPath": "http://localhost:5173",
     "distDir": "../build"
   },
   "package": {
-    "productName": "frontend",
+    "productName": "fluke",
     "version": "0.1.0"
   },
   "tauri": {
