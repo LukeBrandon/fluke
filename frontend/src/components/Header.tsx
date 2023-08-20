@@ -1,10 +1,9 @@
-import * as React from 'react';
-import Toolbar from '@mui/material/Toolbar';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import SearchIcon from '@mui/icons-material/Search';
-import Typography from '@mui/material/Typography';
-import Link from '@mui/material/Link';
+import * as React from "react";
+import Toolbar from "@mui/material/Toolbar";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
+import Typography from "@mui/material/Typography";
+import { Link } from "react-router-dom";
 
 interface HeaderProps {
   sections: ReadonlyArray<{
@@ -15,46 +14,32 @@ interface HeaderProps {
 }
 
 export default function Header(props: HeaderProps) {
-  const { sections, title } = props;
+  const { title } = props;
 
   return (
     <React.Fragment>
-      <Toolbar sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Button size="small">Subscribe</Button>
+      <Toolbar sx={{ justifyContent: "space-between", width: "100%" }}>
         <Typography
-          component="h2"
-          variant="h5"
-          color="inherit"
-          align="center"
-          noWrap
-          sx={{ flex: 1 }}
+          variant="h4"
+          component="h1"
+          gutterBottom
+          component={Link}
+          to="/"
+          sx={{ color: 'white', textDecoration: 'none' }}
         >
           {title}
         </Typography>
-        <IconButton>
-          <SearchIcon />
-        </IconButton>
-        <Button variant="outlined" size="small">
-          Sign up
-        </Button>
-      </Toolbar>
-      <Toolbar
-        component="nav"
-        variant="dense"
-        sx={{ justifyContent: 'space-between', overflowX: 'auto' }}
-      >
-        {sections.map((section) => (
-          <Link
-            color="inherit"
-            noWrap
-            key={section.title}
-            variant="body2"
-            href={section.url}
-            sx={{ p: 1, flexShrink: 0 }}
-          >
-            {section.title}
-          </Link>
-        ))}
+        <ButtonGroup variant="text" aria-label="outlined button group">
+          <Button component={Link} to="/messages">
+            Messages
+          </Button>
+          <Button component={Link} to="/login">
+            Log In
+          </Button>
+          <Button component={Link} to="/signup">
+            Sign Up
+          </Button>
+        </ButtonGroup>
       </Toolbar>
     </React.Fragment>
   );

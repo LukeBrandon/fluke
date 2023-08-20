@@ -4,16 +4,9 @@ import {
   Button,
   TextField,
   Typography,
-  ThemeProvider,
-  createTheme,
 } from '@mui/material';
 import { FormData } from "../types";
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
 
 interface FormProps {
   onSubmit: (data: FormData) => void;
@@ -44,7 +37,6 @@ const SignupForm: React.FC<FormProps> = ({ onSubmit }) => {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -102,11 +94,11 @@ const SignupForm: React.FC<FormProps> = ({ onSubmit }) => {
           required
         />
         <Button type="submit" variant="contained" color="primary">
-          Sign Up
+        Submit
         </Button>
       </Box>
-    </ThemeProvider>
   );
 };
 
 export default SignupForm;
+
