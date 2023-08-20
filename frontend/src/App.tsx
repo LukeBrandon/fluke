@@ -1,31 +1,48 @@
+import { useState } from 'react';
 import Container from "@mui/material/Container";
 import MainContainer from './components/MainContainer';
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Link from "@mui/material/Link";
-import MessageDisplay from "./components/MessageDisplay"
+import MessageDisplay from "./components/MessageDisplay";
+import ChannelSelector from "./components/ChannelSelector";
 
 function Copyright() {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center">
-      {"Copyright ©"}
-      <Link color="inherit" href="https://mui.com/">
-        Fluke
-      </Link>{" "}
-      {new Date().getFullYear()}.
-    </Typography>
-  );
+    return (
+        <Typography variant="body2" color="text.secondary" align="center">
+            {"Copyright ©"}
+            <Link color="inherit" href="https://mui.com/">
+                Fluke
+            </Link>{" "}
+            {new Date().getFullYear()}.
+        </Typography>
+    );
 }
 
 export default function App() {
-  return (
-    <Container maxWidth="sm">
-      <Box sx={{ my: 4 }}>
-      <MainContainer>
-      <MessageDisplay url="http://localhost:8000/channels/2/messages"/>
-      </MainContainer>
-        <Copyright />
-      </Box>
-    </Container>
-  );
+    const [channelId, setChannelId] = useState<number | null>(null);
+
+    const handleChannelSelect = (id: number) => {
+        setChannelId(id);
+    };
+    return (
+        <Container maxWidth="sm">
+            <Box sx={{ my: 4 }}>
+                <MainContainer>
+                    <div>
+                        <h1>Channel Selector:</h1>
+                        <ChannelSelector onChannelSelect={handleChannelSelect} />
+                        {channelId && (
+                            <>
+                                <h2>Messages from Channel {channelId}:</h2>
+                                <MessageDisplay url={`http://localhost:8000/channels/${channelId}/messages`} />
+                                <MessageDisplay url={`https://api.example.com/${channelId}`} />
+                            </>
+                        )}
+                    </div>
+                </MainContainer>
+                <Copyright />
+            </Box>
+        </Container>
+    );
 }
