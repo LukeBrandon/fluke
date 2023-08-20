@@ -1,55 +1,27 @@
-# Fluke - Frontend
+# React + TypeScript + Vite
 
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-- Fluke's frontend is written using [Yew - Rust / Wasm client web app framework](https://github.com/yewstack/yew)
+Currently, two official plugins are available:
 
-- [Trunk for bundling](https://github.com/thedodd/trunk)
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-- [wasm-bindgen book/guide](https://rustwasm.github.io/wasm-bindgen/) covers most topics
+## Expanding the ESLint configuration
 
-- [Tailwind CSS for Styling](https://tailwindcss.com/)
+If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 
-<br>
+- Configure the top-level `parserOptions` property like this:
 
-# Installation / Setup
-
-## Rust and Trunk
-
-This assumes a typical rust installation which contains both `rustup` and Cargo.
-
-To compile Rust to WASM, we need to have the `wasm32-unknown-unknown` target installed.
-If you don't already have it, install it with the following command:
-
-```bash
-rustup target add wasm32-unknown-unknown
+```js
+   parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    project: ['./tsconfig.json', './tsconfig.node.json'],
+    tsconfigRootDir: __dirname,
+   },
 ```
 
-Now that we have our basics covered, it's time to install the star of the show: [Trunk].
-Simply run the following command to install it:
-
-```bash
-cargo install trunk wasm-bindgen-cli
-```
-
-# Run and Build
-
-```bash
-trunk serve # with hosting
-trunk watch # without hosting 
-trunk build --release
-```
-
-Unless overwritten, the output will be located in the `dist` directory.
-
-<br>
-
-# Notes
-
-### On WSL2 you may need to add some env variables to connect with ssl:
-
-- `export OPENSSL_INCLUDE_DIR=/usr/include/openssl`
-- `export OPENSSL_LIB_DIR=/usr/lib`
-
-<br>
-
-### Caution with using too many icons with `wasm-bindgen`, there have been issues with [refusal to load binaries that are too large](https://github.com/rustwasm/wasm-pack/issues/981)
+- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
+- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
+- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
