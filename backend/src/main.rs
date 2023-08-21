@@ -1,15 +1,21 @@
 use axum::{
     async_trait,
     extract::{FromRef, FromRequestParts},
-    http::{request::Parts, StatusCode},
+    http::{
+        header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE},
+        request::Parts,
+        HeaderValue, Method, StatusCode,
+    },
     Router,
 };
 use tower::ServiceBuilder;
 
 use sqlx::postgres::{PgPool, PgPoolOptions};
-use std::{net::SocketAddr, time::Duration};
+use std::{net::SocketAddr, time::Duration, sync::Arc};
 use tower_http::{add_extension::AddExtensionLayer, cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::EnvFilter;
+
+use crate::configuration::models::FlukeConfiguration;
 
 mod configuration;
 mod controllers;
@@ -18,10 +24,17 @@ mod errors;
 mod models;
 mod routes;
 
+#[derive(Clone)]
+pub struct ApiContext {
+    pub config: Arc<FlukeConfiguration>,
+    pub pool: PgPool,
+}
+
 #[tokio::main]
 async fn main() {
     let config = configuration::load_config();
     let port = config.port.0;
+    let addr = SocketAddr::from(([127, 0, 0, 1], port));
 
     // Initialize our logger
     tracing_subscriber::fmt()
@@ -42,10 +55,17 @@ async fn main() {
         .await
         .expect("Error running migrations");
 
+    let cors = CorsLayer::new()
+        // sync with frontend for now
+        .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
+        .allow_credentials(true)
+        .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
+
     // Set up middleware
     let middleware_stack = ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
-        .layer(CorsLayer::very_permissive()) // !! todo: change this bad
+        .layer(cors)
         .layer(AddExtensionLayer::new(pool))
         .into_inner();
 
@@ -57,7 +77,6 @@ async fn main() {
         .layer(middleware_stack);
 
     // Run our service with hyper
-    let addr = SocketAddr::from(([127, 0, 0, 1], port));
     tracing::info!("Listening on {}", addr);
 
     axum::Server::bind(&addr)
