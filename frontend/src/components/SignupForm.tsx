@@ -47,7 +47,7 @@ const SignupForm: React.FC<FormProps> = ({ onSubmit: parentOnSubmit }) => {
             if (response.ok) {
                 const result = await response.json();
                 if (result.email) {
-                    window.location.href = '/login'; // Redirect to the login page
+                    window.location.href = '/login';
                 } else {
                     setError('Unexpected server response');
                 }

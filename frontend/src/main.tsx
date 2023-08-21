@@ -1,33 +1,19 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { RouterProvider } from "react-router-dom";
 import "./styles/index.css";
-import MainLayout from "./layouts/MainLayout";
-import ErrorPage from "./pages/ErrorPage";
-import SignupPage from "./pages/SignupPage";
-import ChannelPage from "./pages/ChannelPage";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <MainLayout />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        path: "signup",
-        element: <SignupPage />,
-      },
-      {
-        path: "messages",
-        element: <ChannelPage />,
-      },
-
-    ],
-  },
-]);
+import { AuthProvider } from 'react-auth-kit'
+import ROUTER from "./routes";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>,
+    <React.StrictMode>
+        <AuthProvider
+            authType="cookie"
+            authName="_auth"
+            cookieDomain={window.location.hostname}
+            cookieSecure={false}
+        >
+            <RouterProvider router={ROUTES} />
+        </AuthProvider>
+    </React.StrictMode>,
 );

@@ -1,13 +1,17 @@
 import React from 'react';
+import LoginForm from '../components/LoginForm';
+import { LoginData } from "../types";
 
-const LoginPage: React.FC = () => {
+const SignupPage: React.FC = () => {
+  const handleSignup = (data: LoginData) => {
+    console.log(data);
+  };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-    Temp
+      <LoginForm onSubmit={handleSignup} />
     </div>
   );
 };
 
-export default LoginPage;
-
+export default SignupPage;
