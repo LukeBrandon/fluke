@@ -10,12 +10,13 @@ use axum::{
 };
 use tower::ServiceBuilder;
 
+use crate::configuration::models::FlukeConfig;
+use crate::errors::FlukeApiError;
+use anyhow::Context;
 use sqlx::postgres::{PgPool, PgPoolOptions};
-use std::{net::SocketAddr, time::Duration, sync::Arc};
-use tower_http::{add_extension::AddExtensionLayer, cors::CorsLayer, trace::TraceLayer};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::EnvFilter;
-
-use crate::configuration::models::FlukeConfiguration;
 
 mod configuration;
 mod controllers;
@@ -24,17 +25,17 @@ mod errors;
 mod models;
 mod routes;
 
+pub type Result<T, E = FlukeApiError> = std::result::Result<T, E>;
+
 #[derive(Clone)]
 pub struct ApiContext {
-    pub config: Arc<FlukeConfiguration>,
+    pub config: Arc<FlukeConfig>,
     pub pool: PgPool,
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     let config = configuration::load_config();
-    let port = config.port.0;
-    let addr = SocketAddr::from(([127, 0, 0, 1], port));
 
     // Initialize our logger
     tracing_subscriber::fmt()
@@ -55,6 +56,12 @@ async fn main() {
         .await
         .expect("Error running migrations");
 
+    serve(config, pool).await?;
+    Ok(())
+}
+
+fn api_router(api_context: ApiContext) -> Router {
+    // Set up middleware
     let cors = CorsLayer::new()
         // sync with frontend for now
         .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
@@ -62,27 +69,33 @@ async fn main() {
         .allow_credentials(true)
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
-    // Set up middleware
     let middleware_stack = ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
+        .layer(TraceLayer::new_for_http())
         .layer(cors)
-        .layer(AddExtensionLayer::new(pool))
         .into_inner();
 
-    // Build our server
-    let app = Router::new()
+    Router::new()
         .merge(routes::user_router())
         .merge(routes::channel_router())
         .merge(routes::message_router())
-        .layer(middleware_stack);
+        .layer(middleware_stack)
+        .with_state(api_context)
+}
 
-    // Run our service with hyper
-    tracing::info!("Listening on {}", addr);
+pub async fn serve(config: FlukeConfig, pool: PgPool) -> anyhow::Result<()> {
+    let api_context = ApiContext {
+        config: Arc::new(configuration::load_config()),
+        pool,
+    };
+
+    let app = api_router(api_context);
+    let addr = SocketAddr::from(([127, 0, 0, 1], config.port.0));
 
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-        .unwrap();
+        .context("error running HTTP server")
 }
 
 // we can also write a custom extractor that grabs a connection from the pool
