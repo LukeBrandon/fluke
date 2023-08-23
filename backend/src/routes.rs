@@ -1,23 +1,24 @@
 use axum::{routing::get, Router};
 
 use crate::controllers;
+use crate::ApiContext;
 
-pub fn user_router() -> Router {
+pub(crate) fn user_router() -> Router<ApiContext> {
     Router::new()
         .route(
-            "/users",
+            "/api/users",
             get(controllers::user::list_users).post(controllers::user::create_user),
         )
-        .route("/users/login", get(controllers::user::verify_user))
+        .route("/api/users/login", get(controllers::user::login_user))
         .route(
-            "/users/:user_id",
-            get(controllers::user::get_user)
+            "/api/user",
+            get(controllers::user::get_current_user)
                 .put(controllers::user::update_user)
                 .delete(controllers::user::delete_user_soft),
         )
 }
 
-pub fn message_router() -> Router {
+pub fn message_router() -> Router<ApiContext> {
     let router = Router::new()
         .route(
             "/",
@@ -32,7 +33,7 @@ pub fn message_router() -> Router {
     Router::new().nest("/channels/:channel_id/messages", router)
 }
 
-pub fn channel_router() -> Router {
+pub fn channel_router() -> Router<ApiContext> {
     let router = Router::new()
         .route(
             "/",
@@ -44,5 +45,5 @@ pub fn channel_router() -> Router {
                 .put(controllers::channel::update_channel)
                 .delete(controllers::channel::delete_channel),
         );
-    Router::new().nest("/channels", router)
+    Router::new().nest("/api/channels", router)
 }
