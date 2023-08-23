@@ -5,14 +5,12 @@ edition = "2021"
 
 [dependencies]
 axum = "0.6.18"
-axum-extra = { version = "0.7.2", features = ["cookie"] }
 tokio = { version = "1.28.2", features = ["full"] }
-argon2 = "0.5.0"
 dotenvy = "0.15.7"
+
 serde = { version = "1.0.164", features = ["derive"] }
 serde_json = "1.0.68"
-jsonwebtoken = "8.3.0"
-rand_core = { version = "0.6.4", features = ["std"] }
+
 sqlx = { version = "0.7", features = [ "runtime-async-std", "tls-rustls", "postgres", "chrono", "json", "time", "macros" ] }
 chrono = { version = "0.4.26", features = ["serde"] }
 tower = {version = "0.4.12", features = ["full"] }
